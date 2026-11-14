@@ -1,38 +1,31 @@
 <!DOCTYPE html>
-<html lang="he" dir="rtl">
+<html lang="he" dir="rtl" data-theme="light">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>תקציב משפחתי</title>
-<meta name="theme-color" content="#15213b">
+<meta name="theme-color" content="#f4f6fb">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="apple-mobile-web-app-title" content="תקציב">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&display=swap" rel="stylesheet">
-<script>try{var th=localStorage.getItem("il-family-budget-theme");if(th==="light"||th==="dark")document.documentElement.setAttribute("data-theme",th);}catch(e){}</script>
+<script>try{document.documentElement.setAttribute("data-theme",localStorage.getItem("il-family-budget-theme")==="dark"?"dark":"light");}catch(e){}</script>
 <style>
-/* Layout idea: one calm column for the phone. A dark result card on top, then income, expenses and savings as colour-coded cards with foldable groups. */
+/* Layout idea: a phone app. Sticky top bar, one column of cards, bottom tab bar with four views (budget, history, analytics, settings). Light by default. */
 :root{
-  --bg:#f3f5fa; --surface:#ffffff; --ink:#111a2c; --muted:#5c667a; --line:#e1e5ee;
+  --bg:#f4f6fb; --surface:#ffffff; --ink:#111a2c; --muted:#5c667a; --line:#e2e6ef;
   --accent:#2457d6; --accent-ink:#ffffff; --accent-soft:#e6edfd;
   --good:#0b8a5c; --good-soft:#e0f4ec; --bad:#cf3b33; --bad-soft:#fce8e6;
   --warm:#c9631a; --warm-soft:#fcefe2;
   --hero:#15213b; --hero-ink:#ffffff; --hero-muted:#b3bed8; --hero-good:#7be0b6; --hero-bad:#ffa59c; --hero-line:rgba(255,255,255,.14);
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100; --s5:#e87ba4; --s6:#008300; --s7:#6250d6; --s8:#e34948; --s-other:#8a90a0;
   --font:"Heebo",system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
   color-scheme:light;
-}
-@media (prefers-color-scheme:dark){
-  :root:not([data-theme="light"]){
-    --bg:#0c111c; --surface:#151c2b; --ink:#e9edf6; --muted:#98a3b8; --line:#273147;
-    --accent:#7ea2ff; --accent-ink:#0a1530; --accent-soft:#1b2947;
-    --good:#4fd1a1; --good-soft:#12302a; --bad:#ff8a80; --bad-soft:#3a1c1c;
-    --warm:#f0a35e; --warm-soft:#33261a;
-    --hero:#1b2742; --hero-ink:#ffffff; --hero-muted:#b3bed8; --hero-good:#7be0b6; --hero-bad:#ffa59c; --hero-line:rgba(255,255,255,.14);
-    color-scheme:dark;
-  }
 }
 :root[data-theme="dark"]{
   --bg:#0c111c; --surface:#151c2b; --ink:#e9edf6; --muted:#98a3b8; --line:#273147;
@@ -40,35 +33,52 @@
   --good:#4fd1a1; --good-soft:#12302a; --bad:#ff8a80; --bad-soft:#3a1c1c;
   --warm:#f0a35e; --warm-soft:#33261a;
   --hero:#1b2742; --hero-ink:#ffffff; --hero-muted:#b3bed8; --hero-good:#7be0b6; --hero-bad:#ffa59c; --hero-line:rgba(255,255,255,.14);
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#0ca30c; --s7:#9085e9; --s8:#e66767; --s-other:#7c8496;
   color-scheme:dark;
 }
 *{box-sizing:border-box}
+html{touch-action:manipulation;-webkit-text-size-adjust:100%}
 html,body{margin:0}
-body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.5;-webkit-text-size-adjust:100%}
-.wrap{max-width:720px;margin-inline:auto;padding:20px 16px 72px;display:flex;flex-direction:column;gap:16px}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.5;padding-bottom:calc(84px + env(safe-area-inset-bottom,0px));overscroll-behavior-y:none}
+.wrap{max-width:720px;margin-inline:auto;padding:8px 16px 24px;display:flex;flex-direction:column;gap:16px}
 .stack{display:flex;flex-direction:column;gap:16px}
 .num{direction:ltr;unicode-bidi:isolate;font-variant-numeric:tabular-nums;white-space:nowrap}
 button,input,select{font:inherit;color:inherit}
-button{cursor:pointer}
+button{cursor:pointer;-webkit-tap-highlight-color:transparent}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .muted{color:var(--muted)}
 .small{font-size:.875rem}
 .dot{width:10px;height:10px;border-radius:50%;flex:none;display:inline-block}
+.ic{width:22px;height:22px;flex:none;display:block}
+h2{margin:0}
+p{margin:0}
 
-header.top{display:flex;align-items:flex-end;justify-content:space-between;gap:8px 16px;flex-wrap:wrap}
-h1{font-weight:800;font-size:1.7rem;line-height:1.15;margin:0;letter-spacing:-.01em}
-.sub{color:var(--muted);margin:2px 0 0}
-.status{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 12px;font-size:.82rem;color:var(--muted);text-align:start;max-width:100%}
-.status span{overflow-wrap:anywhere}
+/* top bar */
+.appbar{position:sticky;top:0;z-index:6;background:var(--bg);padding:calc(10px + env(safe-area-inset-top,0px)) 16px 10px}
+.appbar-in{max-width:688px;margin-inline:auto;display:flex;align-items:center;gap:10px}
+.logo{width:34px;height:34px;border-radius:10px;flex:none}
+.appbar h1{font-weight:800;font-size:1.25rem;line-height:1.2;margin:0;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chipleft{display:none;font-weight:800;padding:5px 10px;border-radius:999px;background:var(--surface);border:1px solid var(--line)}
+.chipleft.show{display:inline-block}
+.chipleft.pos{color:var(--good)}
+.chipleft.neg{color:var(--bad)}
+.ibtn{width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--surface);display:inline-flex;align-items:center;justify-content:center;flex:none;color:var(--ink);padding:0}
+.ibtn.plain{border:0;background:none;color:var(--muted);width:40px;height:40px}
+.ibtn.plain:hover{background:var(--bad-soft);color:var(--bad)}
+.ibtn.plain.neutral:hover{background:var(--accent-soft);color:var(--accent)}
+.ibtn.armed,.ibtn.plain.armed{background:var(--bad);color:#fff;border-color:var(--bad)}
+.ibtn .ic{width:20px;height:20px}
 
-.stick{position:fixed;top:0;inset-inline:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);padding:10px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;transform:translateY(-110%);font-weight:500}
-.stick.show{transform:none}
-.stick b{font-size:1.15rem;font-weight:800}
-.stick .pos{color:var(--good)}
-.stick .neg{color:var(--bad)}
-@media (prefers-reduced-motion:no-preference){.stick{transition:transform .2s ease}.bar span{transition:width .25s ease}.chev{transition:transform .15s ease}}
+/* bottom tabs */
+.tabs{position:fixed;bottom:0;inset-inline:0;z-index:6;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+.tabs-in{max-width:720px;margin-inline:auto;display:grid;grid-template-columns:repeat(4,1fr)}
+.tab{border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px 8px;color:var(--muted);font-size:.75rem;font-weight:500;min-height:62px}
+.tab span.pillic{display:inline-flex;align-items:center;justify-content:center;width:56px;height:30px;border-radius:999px}
+.tab[aria-current="page"]{color:var(--accent);font-weight:700}
+.tab[aria-current="page"] span.pillic{background:var(--accent-soft)}
 
-.hero{background:var(--hero);color:var(--hero-ink);border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:18px}
+/* hero */
+.hero{background:var(--hero);color:var(--hero-ink);border-radius:22px;padding:20px;display:flex;flex-direction:column;gap:18px}
 .hero-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
 .h-label{color:var(--hero-muted);font-weight:500}
 .big{font-weight:800;font-size:2.9rem;line-height:1.1;letter-spacing:-.02em;text-align:start}
@@ -82,42 +92,45 @@ h1{font-weight:800;font-size:1.7rem;line-height:1.15;margin:0;letter-spacing:-.0
 .trio .lbl{display:flex;align-items:center;gap:6px;color:var(--hero-muted);font-size:.85rem}
 .trio b{display:block;font-size:1.15rem;font-weight:700;text-align:start}
 
-.tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-.more{display:flex;gap:8px;flex-wrap:wrap;flex-basis:100%}
-.btn{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:11px 16px;font-weight:500;min-height:46px}
+/* quick actions */
+.quick{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.qbtn{border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:6px;padding:4px 2px;font-size:.78rem;color:var(--muted);font-weight:500;text-align:center;line-height:1.2}
+.qbtn i{display:flex;align-items:center;justify-content:center;width:54px;height:54px;border-radius:18px;background:var(--surface);border:1px solid var(--line);color:var(--accent)}
+.qbtn:active i{background:var(--accent-soft)}
+.qbtn .ic{width:24px;height:24px}
+
+.banner{background:var(--accent-soft);border-radius:14px;padding:12px 14px;display:flex;gap:10px;align-items:center;justify-content:space-between}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:10px 16px;font-weight:500;min-height:46px;display:inline-flex;align-items:center;justify-content:center;gap:8px}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:700}
-.btn.ghost{background:none}
 .btn.sm{padding:7px 12px;font-size:.9rem;min-height:38px;border-radius:10px}
 .btn.danger{color:var(--bad)}
-.stepper{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:5px 12px 5px 6px;min-height:46px;font-weight:500}
-.stepper button{width:34px;height:34px;border-radius:9px;border:1px solid var(--line);background:var(--bg);font-size:1.2rem;line-height:1}
-.stepper b{min-width:1.4em;text-align:center;font-weight:700}
+.btn.armed{background:var(--bad);border-color:var(--bad);color:#fff}
 
-.banner{background:var(--accent-soft);border-radius:14px;padding:12px 14px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
-
+/* cards and sections */
 .card{background:var(--surface);border:1px solid var(--line);border-radius:18px}
+.pad{padding:16px;display:flex;flex-direction:column;gap:14px}
+.card-title{font-weight:800;font-size:1.1rem}
+.view-title{font-weight:800;font-size:1.4rem;display:flex;align-items:center;justify-content:space-between;gap:12px}
 .sec{overflow:hidden;--sec:var(--accent);--sec-soft:var(--accent-soft)}
 .sec-income{--sec:var(--good);--sec-soft:var(--good-soft)}
 .sec-expense{--sec:var(--warm);--sec-soft:var(--warm-soft)}
-.sec-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 16px;background:var(--sec-soft)}
-.sec-head h2{font-weight:800;font-size:1.3rem;margin:0;color:var(--sec)}
-.sec-head .tot{font-weight:800;font-size:1.15rem}
-.sec-head .tot small{font-weight:400;font-size:.8rem;color:var(--muted);direction:rtl}
-.note{padding:10px 16px 0;margin:0;color:var(--muted);font-size:.875rem}
+.sec-head{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--sec-soft)}
+.sec-head h2{font-weight:800;font-size:1.25rem;color:var(--sec);flex:1}
+.sec-head .tot{font-weight:800;font-size:1.1rem}
+.sec-head .tot small{font-weight:400;font-size:.8rem;color:var(--muted)}
+.sec-add{width:40px;height:40px;border-radius:50%;border:0;background:var(--sec);color:var(--surface);display:inline-flex;align-items:center;justify-content:center;flex:none;padding:0}
+.note{padding:10px 16px;color:var(--muted);font-size:.875rem}
 .grp-head{display:flex;align-items:center;border-top:1px solid var(--line)}
-.grp-tgl{flex:1;min-width:0;display:flex;align-items:center;gap:10px;border:0;background:none;padding:14px 16px;text-align:start;font-weight:700;min-height:52px}
+.grp-tgl{flex:1;min-width:0;display:flex;align-items:center;gap:10px;border:0;background:none;padding:12px 16px;text-align:start;font-weight:700;min-height:52px}
 .grp-tgl .nm{flex:1;min-width:0;overflow-wrap:anywhere}
 .cnt{font-weight:500;font-size:.78rem;color:var(--muted);background:var(--bg);border-radius:999px;padding:2px 8px}
 .chev{width:8px;height:8px;border-inline-end:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg);flex:none;margin-inline:2px 4px}
-.grp-tgl[aria-expanded="false"] .chev{transform:rotate(135deg)}
-.x{border:0;background:none;color:var(--muted);width:40px;height:40px;border-radius:10px;font-size:1.3rem;line-height:1;flex:none}
-.x:hover{background:var(--bad-soft);color:var(--bad)}
-.grp-head .x{margin-inline-end:8px}
-.row{display:grid;grid-template-columns:1fr auto auto;grid-template-areas:"name amt rm" "meta meta meta";gap:2px 8px;padding:8px 8px 8px 16px;border-top:1px solid var(--line);align-items:center}
-[dir="rtl"] .row{padding:8px 16px 8px 8px}
+[aria-expanded="false"] > .chev{transform:rotate(135deg)}
+.grp-head .ibtn{margin-inline-end:8px}
+.row{display:grid;grid-template-columns:1fr auto auto;grid-template-areas:"name amt rm" "meta meta meta";gap:2px 6px;padding:8px 16px 8px 8px;border-top:1px solid var(--line);align-items:center}
 .row .name{grid-area:name;min-width:0;overflow-wrap:anywhere;font-weight:500}
 .row .name input{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:8px 10px}
-.row .x{grid-area:rm}
+.row .ibtn{grid-area:rm}
 .row .meta{grid-area:meta;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .amt{grid-area:amt;display:inline-flex;align-items:center;border:1.5px solid var(--line);background:var(--bg);border-radius:12px;padding-inline:10px;direction:ltr;height:46px}
 .amt:focus-within{border-color:var(--accent);background:var(--surface)}
@@ -132,26 +145,71 @@ select{border:1px solid var(--line);background:var(--bg);border-radius:10px;padd
   .row{grid-template-columns:1fr auto auto auto;grid-template-areas:"name meta amt rm"}
   .row .meta{flex-wrap:nowrap;flex-direction:row-reverse}
 }
-.sec-foot{padding:12px 16px 16px;border-top:1px solid var(--line)}
-.add{width:100%;border:1.5px dashed var(--sec);background:none;color:var(--sec);border-radius:12px;padding:12px;font-weight:700;min-height:48px}
-.add:hover{background:var(--sec-soft)}
-.empty{padding:16px;color:var(--muted);margin:0;border-top:1px solid var(--line)}
+.empty{padding:16px;color:var(--muted);border-top:1px solid var(--line)}
+.emptystate{padding:28px 16px;text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center;color:var(--muted)}
 
-.breakdown{padding:16px;display:flex;flex-direction:column;gap:14px}
-.breakdown[hidden]{display:none}
-.card-title{font-weight:800;font-size:1.15rem;margin:0}
-.bar{display:flex;height:16px;border-radius:8px;overflow:hidden;background:var(--line);direction:ltr}
-.bar span{display:block;height:100%}
-.legend{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px 20px}
-.legend li{display:flex;align-items:center;gap:8px;min-width:0}
-.legend .nm{flex:1;min-width:0;overflow-wrap:anywhere}
-.legend .pc{color:var(--muted);font-size:.85rem;min-width:2.6em;text-align:end}
+/* history */
+.hcard{padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.hrow{display:flex;align-items:center;gap:8px}
+.hrow .m{font-weight:800;font-size:1.1rem;flex:1}
+.hleft{font-weight:800;font-size:1.25rem}
+.hleft.pos{color:var(--good)}
+.hleft.neg{color:var(--bad)}
+.htrio{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;font-size:.85rem;color:var(--muted)}
+.htrio b{display:block;color:var(--ink);font-size:1rem}
+.hdet{border:0;background:none;display:inline-flex;align-items:center;gap:6px;color:var(--accent);font-weight:500;padding:8px 0;flex:1;text-align:start}
+.list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.list li{display:flex;align-items:center;gap:8px;min-width:0}
+.list .nm{flex:1;min-width:0;overflow-wrap:anywhere}
+.list .pc{color:var(--muted);font-size:.85rem;min-width:2.8em;text-align:end}
 
-dialog{border:1px solid var(--line);border-radius:20px;background:var(--surface);color:var(--ink);padding:0;width:min(640px,calc(100vw - 24px));max-height:calc(100vh - 40px);max-height:calc(100dvh - 40px)}
-dialog::backdrop{background:rgba(8,14,28,.6)}
+/* analytics */
+.kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.kpi{border:1px solid var(--line);border-radius:14px;padding:12px}
+.kpi .v{font-weight:800;font-size:1.6rem;line-height:1.2}
+.kpi .l{color:var(--muted);font-size:.85rem}
+.donut-wrap{display:flex;gap:16px;align-items:center;flex-wrap:wrap;justify-content:center}
+.donut{width:190px;height:190px;flex:none}
+.donut-wrap .list{flex:1 1 240px}
+.usebar{display:flex;gap:2px;height:18px;direction:ltr}
+.usebar span{display:block;height:100%;border-radius:4px;min-width:3px}
+.hbar{display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:center}
+.hbar .t{min-width:0;overflow-wrap:anywhere}
+.hbar .track{grid-column:1 / -1;height:8px;border-radius:4px;background:var(--bg);direction:rtl}
+.hbar .track span{display:block;height:100%;border-radius:4px;background:var(--s1)}
+.chart{width:100%;height:auto;display:block;direction:ltr}
+.chart text{font-family:var(--font);font-size:12px;fill:var(--muted)}
+.legend-row{display:flex;gap:16px;flex-wrap:wrap;font-size:.875rem}
+.legend-row span{display:inline-flex;align-items:center;gap:6px}
+.sq{width:12px;height:12px;border-radius:3px;display:inline-block;flex:none}
+.detail{background:var(--bg);border-radius:12px;padding:10px 12px;display:grid;grid-template-columns:repeat(2,1fr);gap:4px 12px;font-size:.9rem}
+.detail .full{grid-column:1 / -1;font-weight:700}
+
+/* settings */
+.set{overflow:hidden}
+.set-title{padding:14px 16px 6px;font-weight:700;color:var(--muted);font-size:.85rem}
+.set-row{display:flex;align-items:center;gap:12px;padding:12px 16px;border-top:1px solid var(--line);width:100%;background:none;border-inline:0;border-bottom:0;text-align:start;min-height:60px}
+.set .set-title + .set-row{border-top:0}
+.set-row .tile{width:38px;height:38px;border-radius:12px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;flex:none}
+.set-row.danger .tile{background:var(--bad-soft);color:var(--bad)}
+.set-row.armed{background:var(--bad-soft)}
+.set-row .txt{flex:1;min-width:0}
+.set-row .txt b{display:block;font-weight:500}
+.set-row .txt small{color:var(--muted);font-size:.82rem;overflow-wrap:anywhere}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:12px;overflow:hidden;flex:none}
+.seg button{border:0;background:none;padding:8px 12px;display:inline-flex;align-items:center;gap:6px;color:var(--muted);min-height:42px}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.seg .ic{width:18px;height:18px}
+.stepper{display:inline-flex;align-items:center;gap:8px;flex:none}
+.stepper button{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:var(--bg);font-size:1.2rem;line-height:1;padding:0}
+.stepper b{min-width:1.4em;text-align:center;font-weight:800;font-size:1.1rem}
+
+/* dialogs */
+dialog{border:1px solid var(--line);border-radius:22px;background:var(--surface);color:var(--ink);padding:0;width:min(640px,calc(100vw - 24px));max-height:calc(100vh - 40px);max-height:calc(100dvh - 40px)}
+dialog::backdrop{background:rgba(8,14,28,.55)}
 .dlg{display:flex;flex-direction:column;max-height:inherit}
-.dlg-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px;border-bottom:1px solid var(--line)}
-.dlg-head h3{font-weight:800;font-size:1.25rem;margin:0}
+.dlg-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line)}
+.dlg-head h3{font-weight:800;font-size:1.2rem;margin:0}
 .dlg-body{padding:16px;overflow:auto;display:flex;flex-direction:column;gap:14px}
 .field{width:100%;border:1.5px solid var(--line);background:var(--bg);border-radius:12px;padding:11px 12px;min-height:46px}
 .pick h4,.dlg-body h4{margin:10px 0 8px;font-size:.95rem;font-weight:700}
@@ -164,104 +222,59 @@ dialog::backdrop{background:rgba(8,14,28,.6)}
 .inline > *{flex:1 1 150px}
 .inline > .btn{flex:0 0 auto}
 label.small{display:flex;flex-direction:column;gap:4px;color:var(--muted)}
-label.small .field{color:var(--ink)}
+label.small .field,label.small select{color:var(--ink)}
 .tpl{border:1px solid var(--line);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:10px}
 .tpl b{font-weight:700}
-.tpl .acts,.tpl.acts{display:flex;gap:8px;flex-wrap:wrap}
+.acts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 label.chk{display:flex;gap:8px;align-items:center}
+
+.toast{position:fixed;bottom:calc(96px + env(safe-area-inset-bottom,0px));inset-inline:16px;margin-inline:auto;max-width:420px;background:var(--ink);color:var(--bg);border-radius:14px;padding:12px 16px;text-align:center;font-weight:500;z-index:20;display:none}
+.toast.show{display:block}
+@media (prefers-reduced-motion:no-preference){.chev{transition:transform .15s ease}}
+
+.emptystate .tile{width:56px;height:56px;border-radius:18px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center}
 </style>
 </head>
 <body>
-<div class="stick" id="stick" aria-hidden="true"></div>
-<div class="wrap">
-  <header class="top">
-    <div>
-      <h1 id="title"></h1>
-      <p class="sub" id="subtitle"></p>
-    </div>
-    <button type="button" class="status" id="status" data-act="open-gh"></button>
-  </header>
-  <section class="hero" id="summary" aria-live="polite"></section>
-  <div class="tools" id="tools"></div>
-  <div id="banner"></div>
-  <div id="sections" class="stack"></div>
-  <section class="card breakdown" id="breakdown" hidden></section>
-</div>
+<header class="appbar"><div class="appbar-in">
+  <svg class="logo" viewBox="0 0 512 512" aria-hidden="true"><rect width="512" height="512" rx="112" fill="#15213b"/><g fill="none" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"><path d="M150 372V150h142v150" stroke="#ffffff"/><path d="M220 212v150h142V140" stroke="#7be0b6"/></g></svg>
+  <h1>תקציב משפחתי</h1>
+  <span id="chipleft" class="chipleft num"></span>
+  <button type="button" class="ibtn" id="sync" data-act="sync"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 18a4 4 0 0 1-.6-7.96A6 6 0 0 1 18 9.5 4.25 4.25 0 0 1 17.5 18z"/></svg></button>
+  <button type="button" class="ibtn" data-act="refresh" aria-label="רענון" title="רענון"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.5-5.8"/><path d="M20 4v5h-5"/></svg></button>
+</div></header>
+<main class="wrap" id="view"></main>
+<nav class="tabs" aria-label="ניווט ראשי"><div class="tabs-in" id="tabs"></div></nav>
 <dialog id="dlg"><div class="dlg" id="dlg-inner"></div></dialog>
-
+<div class="toast" id="toast" role="status"></div>
 <script>
 (function(){
 "use strict";
 
-/* ---------- text ---------- */
-var L={
-en:{title:"Israeli Family Budget",subtitle:"Monthly income, expenses and savings for parents, in shekels.",
- left:"Left each month",income:"Income",expense:"Expenses",savings:"Savings",
- surplus:"Surplus",deficit:"Over budget",balanced:"Balanced",start:"Add your amounts",
- ofIncome:"of income",kidsCost:"Children's costs",perChild:"per child",aMonth:"a month",
- templates:"Templates",children:"Children",clear:"Clear all amounts",copy:"Copy summary",copied:"Copied",
- exampleMsg:"These are example amounts. Replace them with your own.",
- savedCloud:"Saved to your account",savedLocal:"Saved on this device",notSaved:"Not saved in this view",
- add_income:"Add income",add_expense:"Add expense",add_savings:"Add savings",
- empty:"Nothing here yet.",removeItem:"Remove",removeGroup:"Remove group",
- m:"Monthly",bi:"Every 2 months",y:"Yearly",perMonth:"/ month",
- savNote:"Net salary already excludes pension and keren hishtalmut deductions made through your employer. Enter only deposits you make yourself.",
- search:"Search categories",custom:"Custom category",customName:"Name",addBtn:"Add",newGroup:"New group…",newGroupName:"Group name",
- close:"Close",ready:"Ready-made templates",mine:"Your templates",replace:"Use this",merge:"Add to my list",del:"Delete",
- saveTpl:"Save current list as a template",tplName:"Template name",withAmounts:"Include amounts",save:"Save template",
- noMine:"No saved templates yet.",items:"categories",
- replaceHint:"\"Use this\" replaces your list and keeps amounts for categories that stay.",
- ghBtn:"GitHub sync",ghTitle:"Save to GitHub",
- ghIntro:"The budget is saved to a JSON file in your GitHub repository, so every device and person connected to it sees the same data. The access token is kept in this browser only and is never written to the file.",
- ghOwner:"Owner",ghRepo:"Repository",ghBranch:"Branch",ghPath:"File path",ghToken:"Access token",
- ghTokenHint:"On GitHub, create a fine-grained personal access token limited to this repository, with the Contents permission set to Read and write.",
- ghConnect:"Connect",ghDisconnect:"Disconnect",
- ghSynced:"Saved to GitHub",ghSaving:"Saving to GitHub…",ghLoading:"Loading from GitHub…",
- ghErrAuth:"GitHub rejected the token. Check the token and its permissions.",
- ghErrNotFound:"Repository not found, or the token has no access to it.",
- ghErrNet:"Could not reach GitHub. Changes are kept on this device."},
-he:{title:"תקציב משפחתי",subtitle:"הכנסות, הוצאות וחיסכון חודשיים להורים, בשקלים.",
- left:"נשאר בכל חודש",income:"הכנסות",expense:"הוצאות",savings:"חיסכון",
- surplus:"עודף",deficit:"חריגה מהתקציב",balanced:"מאוזן",start:"הזינו סכומים",
- ofIncome:"מההכנסה",kidsCost:"הוצאות על הילדים",perChild:"לילד",aMonth:"בחודש",
- templates:"תבניות",children:"ילדים",clear:"איפוס כל הסכומים",copy:"העתקת סיכום",copied:"הועתק",
- exampleMsg:"הסכומים כאן הם לדוגמה. החליפו אותם בסכומים שלכם.",
- savedCloud:"נשמר בחשבון שלך",savedLocal:"נשמר במכשיר הזה",notSaved:"לא נשמר בתצוגה זו",
- add_income:"הוספת הכנסה",add_expense:"הוספת הוצאה",add_savings:"הוספת חיסכון",
- empty:"עדיין אין כאן סעיפים.",removeItem:"הסרה",removeGroup:"הסרת קבוצה",
- m:"חודשי",bi:"דו-חודשי",y:"שנתי",perMonth:"/ חודש",
- savNote:"שכר הנטו כבר אינו כולל הפרשות לפנסיה ולקרן השתלמות דרך המעסיק. הזינו רק הפקדות שאתם מבצעים בעצמכם.",
- search:"חיפוש סעיפים",custom:"סעיף מותאם אישית",customName:"שם",addBtn:"הוספה",newGroup:"קבוצה חדשה…",newGroupName:"שם הקבוצה",
- close:"סגירה",ready:"תבניות מוכנות",mine:"התבניות שלך",replace:"שימוש בתבנית",merge:"הוספה לרשימה שלי",del:"מחיקה",
- saveTpl:"שמירת הרשימה הנוכחית כתבנית",tplName:"שם התבנית",withAmounts:"כולל סכומים",save:"שמירת תבנית",
- noMine:"עדיין אין תבניות שמורות.",items:"סעיפים",
- replaceHint:"\"שימוש בתבנית\" מחליף את הרשימה ושומר סכומים של סעיפים שנשארים.",
- ghBtn:"סנכרון GitHub",ghTitle:"שמירה ב-GitHub",
- ghIntro:"התקציב נשמר בקובץ JSON במאגר ה-GitHub שלכם, כך שכל מכשיר וכל אדם שמחובר אליו רואה את אותם נתונים. אסימון הגישה נשמר רק בדפדפן הזה ואינו נכתב לקובץ.",
- ghOwner:"בעלים",ghRepo:"מאגר",ghBranch:"ענף",ghPath:"נתיב הקובץ",ghToken:"אסימון גישה",
- ghTokenHint:"ב-GitHub, צרו fine-grained personal access token שמוגבל למאגר הזה בלבד, עם הרשאת Contents במצב Read and write.",
- ghConnect:"התחברות",ghDisconnect:"ניתוק",
- ghSynced:"נשמר ב-GitHub",ghSaving:"שומר ב-GitHub…",ghLoading:"טוען מ-GitHub…",
- ghErrAuth:"GitHub דחה את האסימון. בדקו את האסימון ואת ההרשאות שלו.",
- ghErrNotFound:"המאגר לא נמצא, או שלאסימון אין גישה אליו.",
- ghErrNet:"לא ניתן להגיע ל-GitHub. השינויים נשמרים במכשיר הזה."}
+/* ---------- icons ---------- */
+var IC={
+ wallet:'<path d="M4 7h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h11"/><path d="M16 13.5h.01"/>',
+ calendar:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/>',
+ chart:'<path d="M3 21h18M6 21V11M12 21V4M18 21v-7"/>',
+ sliders:'<path d="M4 6h8M18 6h2M4 12h2M12 12h8M4 18h6M16 18h4"/><circle cx="15" cy="6" r="2.5"/><circle cx="9" cy="12" r="2.5"/><circle cx="13" cy="18" r="2.5"/>',
+ refresh:'<path d="M20 12a8 8 0 1 1-2.5-5.8"/><path d="M20 4v5h-5"/>',
+ sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.4 1.4M17.6 17.6 19 19M5 19l1.4-1.4M17.6 6.4 19 5"/>',
+ moon:'<path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"/>',
+ plus:'<path d="M12 5v14M5 12h14"/>',
+ trash:'<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/>',
+ grid:'<rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><rect x="13" y="13" width="8" height="8" rx="2"/>',
+ fold:'<path d="M7 4l5 5 5-5M7 20l5-5 5 5"/>',
+ unfold:'<path d="M7 9l5-5 5 5M7 15l5 5 5-5"/>',
+ save:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18M12 13v5M9.5 15.5h5"/>',
+ download:'<path d="M12 3v12M7 10l5 5 5-5M4 21h16"/>',
+ copy:'<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/>',
+ cloud:'<path d="M7 18a4 4 0 0 1-.6-7.96A6 6 0 0 1 18 9.5 4.25 4.25 0 0 1 17.5 18z"/>',
+ reset:'<path d="M4 12a8 8 0 1 0 2.5-5.8"/><path d="M4 4v5h5"/>',
+ close:'<path d="M6 6l12 12M18 6L6 18"/>',
+ restore:'<path d="M12 21V9M7 14l5-5 5 5M4 3h16"/>',
+ kids:'<circle cx="9" cy="7" r="3"/><circle cx="17" cy="9" r="2.3"/><path d="M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6M15.5 14.2c3 0 5.5 2 5.500 5.300"/>'
 };
-
-Object.assign(L.he,{
- subtitle:"כמה נכנס, כמה יוצא וכמה נשאר בכל חודש",
- heroSub:"הכנסות פחות הוצאות וחיסכון",whereTitle:"לאן הולך הכסף",pctNote:"האחוזים הם מתוך סך ההכנסות.",
- start:"הזינו סכומים כדי להתחיל",deficit:"חריגה",surplus:"נשאר עודף",
- m:"כל חודש",bi:"כל חודשיים",y:"פעם בשנה",perMonth:"לחודש",freq:"תדירות התשלום",
- templates:"תבניות מוכנות",clear:"איפוס הסכומים",copy:"העתקת סיכום",ghBtn:"סנכרון GitHub",
- collapseAll:"כיווץ כל הקבוצות",expandAll:"פתיחת כל הקבוצות",fewer:"פחות ילדים",morek:"עוד ילד",
- empty:"עדיין אין כאן סעיפים. הוסיפו סעיף או בחרו תבנית.",noMatch:"לא נמצאו סעיפים מתאימים.",
- add_income:"הוספת הכנסה",add_expense:"הוספת הוצאה",add_savings:"הוספת חיסכון",
- replace:"החלפת הרשימה בתבנית",merge:"הוספה לרשימה הקיימת",
- replaceHint:"החלפה שומרת את הסכומים של סעיפים שקיימים גם בתבנית.",
- savedLocal:"נשמר במכשיר הזה בלבד",
- refresh:"רענון",themeLight:"תצוגה בהירה",themeDark:"תצוגה כהה",
- linked:"מחובר לקובץ",notLinked:"לא מחובר לקובץ משותף"
-});
+function ic(n){return '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+IC[n]+'</svg>';}
 
 /* ---------- groups: id -> [section, en, he] ---------- */
 var G={
@@ -416,17 +429,29 @@ var READY=[
 ];
 var EXAMPLE={salary1:14500,salary2:10500,childallow:350,mortgage:5200,mortins:120,homeins:90,arnona:1100,vaad:250,electricity:900,water:380,gas:120,tzaharon:1100,kaytana:3000,schoolfees:1800,books:900,chugim:600,kidsclothes:350,pocket:100,birthdays:1500,supermarket:3600,market:500,eatingout:700,pharm:350,fuel:800,carmand:1500,carcomp:3200,cartest:1500,carservice:2400,ravkav:150,shaban:220,dental:2000,meds:120,lifeins:180,bankfees:40,mobile:120,internet:110,tv:80,vacation:9000,chagim:3000,eventgifts:400,clothes:400,childsave:120,gemelinv:500,emergency:500};
 
+
+
+var SEC_NAME={income:"הכנסות",expense:"הוצאות",savings:"חיסכון"};
+var ADD_NAME={income:"הוספת הכנסה",expense:"הוספת הוצאה",savings:"הוספת חיסכון"};
+var FREQ={m:"כל חודש",bi:"כל חודשיים",y:"פעם בשנה"};
+var MONTHS=["ינואר","פברואר","מרץ","אפריל","מאי","יוני","יולי","אוגוסט","ספטמבר","אוקטובר","נובמבר","דצמבר"];
+var SLOT={housing:1,kids:2,food:3,transport:4,health:5,fin:6,comms:7,leisure:8};
+var GHM={ghSynced:"נשמר ב-GitHub",ghSaving:"שומר ב-GitHub…",ghLoading:"טוען מ-GitHub…",
+ ghErrAuth:"GitHub דחה את האסימון. בדקו את האסימון ואת ההרשאות שלו.",
+ ghErrNotFound:"המאגר לא נמצא, או שלאסימון אין גישה אליו.",
+ ghErrNet:"לא ניתן להגיע ל-GitHub. השינויים נשמרים במכשיר הזה."};
+
 /* ---------- state ---------- */
-var STORE="il-family-budget-v1";
-var state,cloudRef=null,cloudOn=false,localOk=true,saveTimer=null,saving=false,dirty=false;
-var dlgMode=null,dlgSec=null,dlgFilter="";
-var UI_STORE="il-family-budget-ui",collapsed={};
+var STORE="il-family-budget-v1",UI_STORE="il-family-budget-ui",THEME_STORE="il-family-budget-theme";
+var state,localOk=true;
+var view="budget",dlgMode=null,dlgSec=null,dlgFilter="",collapsed={},openHist={},anSrc="now",trendSel=null,armed=null,armTimer=null;
 try{collapsed=JSON.parse(localStorage.getItem(UI_STORE)||"{}")||{};}catch(e){collapsed={};}
+try{var sv=sessionStorage.getItem("il-family-budget-view");if(/^(budget|history|analytics|settings)$/.test(sv||""))view=sv;}catch(e){}
 function saveUi(){try{localStorage.setItem(UI_STORE,JSON.stringify(collapsed));}catch(e){}}
 function uid(){return "i"+Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-3);}
 function mkItem(key,amount){var c=CK[key];return {id:uid(),key:key,name:null,group:c[1],freq:c[4],amount:amount||0};}
 function fresh(){
-  var s={v:1,lang:"he",kids:2,example:true,items:[],groups:[],templates:[],updatedAt:0};
+  var s={v:2,lang:"he",kids:2,example:true,items:[],groups:[],templates:[],history:[],updatedAt:0};
   READY[0].keys.split(" ").forEach(function(k){s.items.push(mkItem(k,EXAMPLE[k]));});
   return s;
 }
@@ -436,7 +461,8 @@ function normalize(s){
   s.kids=Math.max(0,Math.min(15,parseInt(s.kids,10)||0));
   s.groups=Array.isArray(s.groups)?s.groups:[];
   s.templates=Array.isArray(s.templates)?s.templates:[];
-  s.items=s.items.filter(function(it){return it&&it.id&&(groupInfo(it.group,s)||false);});
+  s.history=Array.isArray(s.history)?s.history.filter(function(h){return h&&/^\d{4}-\d{2}$/.test(h.month||"")&&Array.isArray(h.items);}):[];
+  s.items=s.items.filter(function(it){return it&&it.id&&groupInfo(it.group,s);});
   s.items.forEach(function(it){it.amount=Math.max(0,Number(it.amount)||0);if(!/^(m|bi|y)$/.test(it.freq))it.freq="m";});
   s.updatedAt=Number(s.updatedAt)||0;
   return s;
@@ -448,39 +474,8 @@ function load(){
 function persist(){
   state.updatedAt=Date.now();
   try{localStorage.setItem(STORE,JSON.stringify(state));localOk=true;}catch(e){localOk=false;}
-  if(cloudRef){dirty=true;clearTimeout(saveTimer);saveTimer=setTimeout(pushCloud,1500);}
   if(gh){ghDirty=true;clearTimeout(ghTimer);ghTimer=setTimeout(ghPush,3000);}
   drawStatus();
-}
-function pushCloud(){
-  if(!cloudRef||saving||!dirty)return;
-  saving=true;dirty=false;
-  cloudRef.set({json:JSON.stringify(state),updatedAt:state.updatedAt}).then(function(){
-    saving=false;cloudOn=true;drawStatus();if(dirty)pushCloud();
-  },function(){saving=false;cloudOn=false;cloudRef=null;drawStatus();});
-}
-function initCloud(){
-  if(!window.claude||typeof window.claude.use!=="function")return;
-  Promise.all([window.claude.use("db"),window.claude.use("user")]).then(function(r){
-    var db=r[0],user=r[1];if(!db||!user)return;
-    return user.id().then(function(id){
-      if(!id)return;
-      var ref=db.doc("data/users/"+id+"/budget");
-      return ref.get().then(function(snap){
-        cloudRef=ref;cloudOn=true;
-        if(snap.exists){
-          var d=snap.data(),remote=null;
-          try{remote=JSON.parse(d.json);}catch(e){}
-          if(remote&&Number(remote.updatedAt)>state.updatedAt){
-            var lang=state.lang;state=normalize(remote);
-            try{localStorage.setItem(STORE,JSON.stringify(state));}catch(e){}
-            renderAll();
-          }else if(state.updatedAt>0){dirty=true;pushCloud();}
-        }else if(state.updatedAt>0){dirty=true;pushCloud();}
-        drawStatus();
-      });
-    });
-  }).catch(function(){});
 }
 
 /* ---------- GitHub JSON file sync ---------- */
@@ -496,12 +491,12 @@ function ghUrl(){return ghRepoUrl()+"/contents/"+gh.path.split("/").filter(Boole
 function ghHeaders(){return {"Accept":"application/vnd.github+json","Authorization":"Bearer "+gh.token,"X-GitHub-Api-Version":"2022-11-28"};}
 function b64enc(str){var b=new TextEncoder().encode(str),s="";for(var i=0;i<b.length;i+=0x8000)s+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000));return btoa(s);}
 function b64dec(b){var s=atob(String(b).replace(/\s/g,"")),a=new Uint8Array(s.length);for(var i=0;i<s.length;i++)a[i]=s.charCodeAt(i);return new TextDecoder().decode(a);}
-function ghSet(k){ghState=k;drawStatus();var e=document.getElementById("gh-msg");if(e)e.textContent=k?t(k):"";}
+function ghSet(k){ghState=k;drawStatus();var e=document.getElementById("gh-msg");if(e)e.textContent=k?GHM[k]:"";}
 function ghFail(code){ghSet(code===401||code===403?"ghErrAuth":code===404?"ghErrNotFound":"ghErrNet");}
 function adopt(remote){
-  var lang=state.lang;state=normalize(remote);state.lang=lang;
+  state=normalize(remote);
   try{localStorage.setItem(STORE,JSON.stringify(state));}catch(e){}
-  drawHeader();drawTools();drawSections();
+  renderAll();
 }
 function ghGet(){
   return fetch(ghUrl()+"?ref="+encodeURIComponent(gh.branch),{headers:ghHeaders(),cache:"no-store"}).then(function(res){
@@ -558,12 +553,13 @@ function ghDisconnect(){
 }
 
 /* ---------- helpers ---------- */
-function t(k){return L[state.lang][k]||L.en[k]||k;}
 function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
 function fmt(n){var r=Math.round(Math.abs(n));return (n<0&&r>0?"−":"")+"₪"+r.toLocaleString("en-US");}
+function num(n){return '<span class="num">'+fmt(n)+'</span>';}
+function pct(v,base){return base>0?Math.round(v/base*100)+"%":"—";}
 function groupInfo(gid,s){
   s=s||state;
-  if(G[gid])return {id:gid,sec:G[gid][0],name:s.lang==="he"?G[gid][2]:G[gid][1],custom:false};
+  if(G[gid])return {id:gid,sec:G[gid][0],name:G[gid][2],custom:false};
   for(var i=0;i<s.groups.length;i++)if(s.groups[i].id===gid)return {id:gid,sec:s.groups[i].sec,name:s.groups[i].name,custom:true};
   return null;
 }
@@ -572,10 +568,10 @@ function groupsOf(sec){
   state.groups.forEach(function(g){if(g.sec===sec)out.push(g.id);});
   return out;
 }
-function allGroupIds(){return G_ORDER.concat(state.groups.map(function(g){return g.id;}));}
-function groupColor(gid){var i=allGroupIds().indexOf(gid);return "hsl("+((i*47+12)%360)+" 52% 52%)";}
-function itemName(it){if(it.key&&CK[it.key])return state.lang==="he"?CK[it.key][3]:CK[it.key][2];return it.name||"";}
-function monthly(it){return it.amount/(it.freq==="y"?12:it.freq==="bi"?2:1);}
+function groupColor(g){return SLOT[g]?"var(--s"+SLOT[g]+")":"var(--s-other)";}
+function itemName(it){if(it.key&&CK[it.key])return CK[it.key][3];return it.name||"";}
+function perMonth(amount,freq){return amount/(freq==="y"?12:freq==="bi"?2:1);}
+function monthly(it){return perMonth(it.amount,it.freq);}
 function sumBy(fn){var s=0;state.items.forEach(function(it){if(fn(it))s+=monthly(it);});return s;}
 function secOf(it){var g=groupInfo(it.group);return g?g.sec:null;}
 function totals(){
@@ -584,117 +580,321 @@ function totals(){
       sav=sumBy(function(it){return secOf(it)==="savings";});
   return {inc:inc,exp:exp,sav:sav,left:inc-exp-sav};
 }
-
-/* ---------- render ---------- */
-function drawHeader(){
-  document.title=t("title");
-  document.getElementById("title").textContent=t("title");
-  document.getElementById("subtitle").textContent=t("subtitle");
+function find(id){for(var i=0;i<state.items.length;i++)if(state.items[i].id===id)return state.items[i];return null;}
+function monthLabel(m){var p=m.split("-");return MONTHS[Number(p[1])-1]+" "+p[0];}
+function monthShort(m){var p=m.split("-");return Number(p[1])+"/"+p[0].slice(2);}
+function thisMonth(){var d=new Date();return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2);}
+function histSorted(){return state.history.slice().sort(function(a,b){return a.month<b.month?-1:a.month>b.month?1:0;});}
+function toast(msg){
+  var el=document.getElementById("toast");el.textContent=msg;el.classList.add("show");
+  clearTimeout(toast.t);toast.t=setTimeout(function(){el.classList.remove("show");},2600);
 }
+function confirmTap(btn,key){
+  if(armed===key){armed=null;clearTimeout(armTimer);return true;}
+  armed=key;btn.classList.add("armed");toast("לחצו שוב לאישור");
+  clearTimeout(armTimer);armTimer=setTimeout(function(){armed=null;btn.classList.remove("armed");},3200);
+  return false;
+}
+
+/* a dataset for analytics, from the live budget or from a saved month */
+function dataNow(){
+  var T=totals(),groups=[];
+  ["income","expense","savings"].forEach(function(sec){groupsOf(sec).forEach(function(g){
+    var v=sumBy(function(it){return it.group===g;});if(v>0)groups.push({id:g,name:groupInfo(g).name,sec:sec,amount:v});
+  });});
+  var items=state.items.filter(function(it){return it.amount>0;}).map(function(it){return {name:itemName(it),group:it.group,sec:secOf(it),monthly:monthly(it)};});
+  return {inc:T.inc,exp:T.exp,sav:T.sav,left:T.left,kids:state.kids,groups:groups,items:items};
+}
+function makeSnap(month){
+  var d=dataNow(),used={};
+  var items=state.items.map(function(it){used[it.group]=1;return {key:it.key||null,name:it.key?null:it.name,group:it.group,freq:it.freq,amount:it.amount};});
+  return {month:month,savedAt:Date.now(),kids:state.kids,inc:d.inc,exp:d.exp,sav:d.sav,left:d.left,groups:d.groups,items:items,
+    cgroups:state.groups.filter(function(g){return used[g.id];}).map(function(g){return {id:g.id,name:g.name,sec:g.sec};})};
+}
+function dataOf(h){
+  function sec(g){if(G[g])return G[g][0];var c=(h.cgroups||[]).filter(function(x){return x.id===g;})[0];return c?c.sec:"expense";}
+  var items=h.items.filter(function(i){return i.amount>0;}).map(function(i){
+    return {name:i.key&&CK[i.key]?CK[i.key][3]:(i.name||""),group:i.group,sec:sec(i.group),monthly:perMonth(i.amount,i.freq)};});
+  return {inc:h.inc,exp:h.exp,sav:h.sav,left:h.left,kids:h.kids||0,groups:h.groups||[],items:items};
+}
+
+/* ---------- shell ---------- */
+function curTheme(){return document.documentElement.getAttribute("data-theme")==="dark"?"dark":"light";}
+function setTheme(th){
+  document.documentElement.setAttribute("data-theme",th);
+  try{localStorage.setItem(THEME_STORE,th);}catch(e){}
+  var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute("content",th==="dark"?"#0c111c":"#f4f6fb");
+}
+function statusText(){
+  if(gh)return "מחובר לקובץ "+gh.repo+"/"+gh.path+(ghState?" · "+GHM[ghState]:"");
+  return "לא מחובר. הנתונים נשמרים במכשיר הזה בלבד"+(localOk?"":" (האחסון במכשיר אינו זמין)");
+}
+function drawStatus(){
+  var b=document.getElementById("sync");if(!b)return;
+  var col=!gh?"var(--muted)":/^ghErr/.test(ghState)?"var(--bad)":ghState==="ghSynced"?"var(--good)":"var(--accent)";
+  b.style.color=col;b.title=statusText();b.setAttribute("aria-label","סנכרון: "+statusText());
+  var s=document.getElementById("gh-status");if(s)s.textContent=statusText();
+}
+function drawNav(){
+  var tabs=[["budget","wallet","תקציב"],["history","calendar","היסטוריה"],["analytics","chart","אנליטיקה"],["settings","sliders","הגדרות"]];
+  document.getElementById("tabs").innerHTML=tabs.map(function(t){
+    return '<button type="button" class="tab" data-act="nav" data-v="'+t[0]+'"'+(view===t[0]?' aria-current="page"':'')+'><span class="pillic">'+ic(t[1])+'</span>'+t[2]+'</button>';
+  }).join("");
+}
+function renderAll(){
+  drawNav();drawStatus();
+  var el=document.getElementById("view");
+  if(view==="budget")viewBudget(el);
+  else if(view==="history")viewHistory(el);
+  else if(view==="analytics")viewAnalytics(el);
+  else viewSettings(el);
+  drawStatus();
+  if(dlgMode)drawDialog();
+}
+function go(v){
+  view=v;try{sessionStorage.setItem("il-family-budget-view",v);}catch(e){}
+  renderAll();window.scrollTo(0,0);
+}
+
+/* ---------- budget view ---------- */
 function drawSummary(){
   var T=totals(),any=state.items.some(function(it){return it.amount>0;});
   var neg=T.left<-0.5,pos=T.left>0.5;
-  var pill=!any?["",t("start")]:pos?["good",t("surplus")]:neg?["bad",t("deficit")]:["",t("balanced")];
-  document.getElementById("summary").innerHTML=
-    "<div class=\"hero-top\"><div><div class=\"h-label\">"+t("left")+"</div><div class=\"big num"+(neg?" neg":pos?" pos":"")+"\">"+fmt(T.left)+"</div><div class=\"h-sub\">"+t("heroSub")+"</div></div><span class=\"pill "+pill[0]+"\">"+pill[1]+"</span></div>"+
-    "<div class=\"trio\">"+
-    "<div><span class=\"lbl\"><i class=\"dot\" style=\"background:var(--hero-good)\"></i>"+t("income")+"</span><b class=\"num\">"+fmt(T.inc)+"</b></div>"+
-    "<div><span class=\"lbl\"><i class=\"dot\" style=\"background:#f0a35e\"></i>"+t("expense")+"</span><b class=\"num\">"+fmt(T.exp)+"</b></div>"+
-    "<div><span class=\"lbl\"><i class=\"dot\" style=\"background:#8fb0ff\"></i>"+t("savings")+"</span><b class=\"num\">"+fmt(T.sav)+"</b></div></div>";
-  document.getElementById("stick").innerHTML="<span>"+t("left")+"</span><b class=\"num "+(neg?"neg":pos?"pos":"")+"\">"+fmt(T.left)+"</b>";
-
-  var denom=Math.max(T.inc,T.exp+T.sav,1),segs="",legend="";
-  function line(col,name,v){
-    segs+="<span style=\"width:"+(v/denom*100).toFixed(2)+"%;background:"+col+"\"></span>";
-    legend+="<li><span class=\"dot\" style=\"background:"+col+"\"></span><span class=\"nm\">"+esc(name)+"</span><b class=\"num\">"+fmt(v)+"</b>"+(T.inc>0?"<span class=\"pc num\">"+Math.round(v/T.inc*100)+"%</span>":"")+"</li>";
-  }
-  groupsOf("expense").forEach(function(g){
-    var v=sumBy(function(it){return it.group===g;});if(v>0)line(groupColor(g),groupInfo(g).name,v);
-  });
-  if(T.sav>0)line("var(--accent)",t("savings"),T.sav);
-  if(T.left>0)line("var(--good)",t("left"),T.left);
-  var kidsCost=sumBy(function(it){return it.group==="kids";});
-  var kidsLine=kidsCost>0?"<p class=\"muted\" style=\"margin:0\">"+t("kidsCost")+": <b class=\"num\">"+fmt(kidsCost)+"</b> "+t("aMonth")+(state.kids>0?" · <b class=\"num\">"+fmt(kidsCost/state.kids)+"</b> "+t("perChild"):"")+"</p>":"";
-  var bd=document.getElementById("breakdown");
-  bd.hidden=!segs;
-  bd.innerHTML=segs?"<h2 class=\"card-title\">"+t("whereTitle")+"</h2><div class=\"bar\" role=\"img\" aria-label=\""+t("whereTitle")+"\">"+segs+"</div><ul class=\"legend\">"+legend+"</ul>"+(T.inc>0?"<p class=\"small muted\" style=\"margin:0\">"+t("pctNote")+"</p>":"")+kidsLine:"";
+  var chip=document.getElementById("chipleft");
+  chip.textContent=fmt(T.left);chip.className="chipleft num"+(neg?" neg":pos?" pos":"")+(chip.classList.contains("show")?" show":"");
+  var el=document.getElementById("summary");if(!el)return;
+  var pill=!any?["","הזינו סכומים כדי להתחיל"]:pos?["good","נשאר עודף"]:neg?["bad","חריגה"]:["","מאוזן"];
+  el.innerHTML=
+    '<div class="hero-top"><div><div class="h-label">נשאר בכל חודש</div><div class="big num'+(neg?" neg":pos?" pos":"")+'">'+fmt(T.left)+'</div><div class="h-sub">הכנסות פחות הוצאות וחיסכון</div></div><span class="pill '+pill[0]+'">'+pill[1]+'</span></div>'+
+    '<div class="trio">'+
+    '<div><span class="lbl"><i class="dot" style="background:var(--hero-good)"></i>הכנסות</span><b class="num">'+fmt(T.inc)+'</b></div>'+
+    '<div><span class="lbl"><i class="dot" style="background:#f0a35e"></i>הוצאות</span><b class="num">'+fmt(T.exp)+'</b></div>'+
+    '<div><span class="lbl"><i class="dot" style="background:#8fb0ff"></i>חיסכון</span><b class="num">'+fmt(T.sav)+'</b></div></div>';
 }
 function shownGroups(){var out=[];state.items.forEach(function(it){if(out.indexOf(it.group)<0)out.push(it.group);});return out;}
 function allCollapsed(){var g=shownGroups();return g.length>0&&g.every(function(x){return collapsed[x];});}
-function drawTools(){
-  document.getElementById("tools").innerHTML=
-    "<button type=\"button\" class=\"btn primary\" data-act=\"open-tpl\">"+t("templates")+"</button>"+
-    "<span class=\"stepper\"><span>"+t("children")+"</span><button type=\"button\" data-act=\"kids\" data-v=\"-1\" aria-label=\""+t("fewer")+"\">−</button><b class=\"num\" id=\"kids-n\">"+state.kids+"</b><button type=\"button\" data-act=\"kids\" data-v=\"1\" aria-label=\""+t("morek")+"\">+</button></span>"+
-    "<div class=\"more\">"+
-    "<button type=\"button\" class=\"btn sm\" data-act=\"refresh\">\u21BB "+t("refresh")+"</button>"+
-    "<button type=\"button\" class=\"btn sm\" data-act=\"theme\">"+(curTheme()==="dark"?t("themeLight"):t("themeDark"))+"</button>"+
-    "<button type=\"button\" class=\"btn sm\" data-act=\"tgl-all\">"+(allCollapsed()?t("expandAll"):t("collapseAll"))+"</button>"+
-    "<button type=\"button\" class=\"btn sm\" data-act=\"open-gh\">"+t("ghBtn")+"</button>"+
-    "<button type=\"button\" class=\"btn sm\" data-act=\"copy\" id=\"copy-btn\">"+t("copy")+"</button>"+
-    "<button type=\"button\" class=\"btn sm ghost danger\" data-act=\"clear\">"+t("clear")+"</button></div>";
-  drawStatus();
-  document.getElementById("banner").innerHTML=state.example?"<div class=\"banner\"><span>"+t("exampleMsg")+"</span><button type=\"button\" class=\"btn sm\" data-act=\"clear\">"+t("clear")+"</button></div>":"";
+function quickHtml(){
+  var all=allCollapsed();
+  function q(act,icon,label){return '<button type="button" class="qbtn" data-act="'+act+'"><i>'+ic(icon)+'</i>'+label+'</button>';}
+  return q("open-tpl","grid","תבניות")+q("open-save","save","שמירת חודש")+q("tgl-all",all?"unfold":"fold",all?"פתיחת הכול":"כיווץ הכול")+q("excel","download","אקסל");
 }
-function curTheme(){
-  var a=document.documentElement.getAttribute("data-theme");if(a==="light"||a==="dark")return a;
-  return window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";
-}
-function drawStatus(){
-  var el=document.getElementById("status");if(!el)return;
-  var col="var(--muted)",txt;
-  if(gh){
-    var err=/^ghErr/.test(ghState);
-    col=err?"var(--bad)":ghState==="ghSynced"?"var(--good)":"var(--accent)";
-    txt=t("linked")+" <span class=\"num\" style=\"white-space:normal\">"+esc(gh.repo+"/"+gh.path)+"</span>"+(ghState?" · "+t(ghState):"");
-  }else{
-    var local=state.updatedAt===0?"":cloudOn&&cloudRef?t("savedCloud"):localOk?t("savedLocal"):t("notSaved");
-    txt=t("notLinked")+(local?" · "+local:"");
-  }
-  el.innerHTML="<i class=\"dot\" style=\"background:"+col+"\"></i><span>"+txt+"</span>";
-}
-function eqHtml(it){return it&&it.freq!=="m"&&it.amount>0?"= <span class=\"num\">"+fmt(monthly(it))+"</span> "+t("perMonth"):"";}
+function eqHtml(it){return it&&it.freq!=="m"&&it.amount>0?"= "+num(monthly(it))+" לחודש":"";}
 function rowHtml(it){
-  var eq=eqHtml(it);
-  var name=it.key?esc(itemName(it)):"<input type=\"text\" id=\"nm-"+it.id+"\" data-name=\""+it.id+"\" value=\""+esc(it.name||"")+"\" aria-label=\""+t("customName")+"\">";
-  return "<div class=\"row\"><div class=\"name\">"+name+"</div>"+
-    "<label class=\"amt\"><span>₪</span><input type=\"number\" inputmode=\"decimal\" min=\"0\" step=\"1\" placeholder=\"0\" id=\"amt-"+it.id+"\" data-amt=\""+it.id+"\" value=\""+(it.amount?it.amount:"")+"\" aria-label=\""+esc(itemName(it))+"\"></label>"+
-    "<button type=\"button\" class=\"x\" data-act=\"rm\" data-id=\""+it.id+"\" aria-label=\""+t("removeItem")+": "+esc(itemName(it))+"\" title=\""+t("removeItem")+"\">×</button>"+
-    "<div class=\"meta\"><select id=\"fq-"+it.id+"\" data-freq=\""+it.id+"\" aria-label=\""+t("freq")+"\">"+["m","bi","y"].map(function(f){return "<option value=\""+f+"\""+(it.freq===f?" selected":"")+">"+t(f)+"</option>";}).join("")+"</select>"+
-    "<span class=\"eq\" data-eq=\""+it.id+"\">"+eq+"</span></div></div>";
+  var name=it.key?esc(itemName(it)):'<input type="text" id="nm-'+it.id+'" data-name="'+it.id+'" value="'+esc(it.name||"")+'" aria-label="שם הסעיף">';
+  return '<div class="row"><div class="name">'+name+'</div>'+
+    '<label class="amt"><span>₪</span><input type="number" inputmode="decimal" min="0" step="1" placeholder="0" id="amt-'+it.id+'" data-amt="'+it.id+'" value="'+(it.amount?it.amount:"")+'" aria-label="'+esc(itemName(it))+'"></label>'+
+    '<button type="button" class="ibtn plain" data-act="rm" data-id="'+it.id+'" aria-label="הסרת '+esc(itemName(it))+'" title="הסרה">'+ic("trash")+'</button>'+
+    '<div class="meta"><select id="fq-'+it.id+'" data-freq="'+it.id+'" aria-label="תדירות התשלום">'+["m","bi","y"].map(function(f){return '<option value="'+f+'"'+(it.freq===f?" selected":"")+'>'+FREQ[f]+'</option>';}).join("")+'</select>'+
+    '<span class="eq" data-eq="'+it.id+'">'+eqHtml(it)+'</span></div></div>';
 }
 function drawSections(){
+  var box=document.getElementById("sections");if(!box)return;
   var html="";
   ["income","expense","savings"].forEach(function(sec){
     var body="";
     groupsOf(sec).forEach(function(g){
       var items=state.items.filter(function(it){return it.group===g;});if(!items.length)return;
       var open=!collapsed[g],gi=groupInfo(g);
-      body+="<div class=\"grp-head\"><button type=\"button\" class=\"grp-tgl\" data-act=\"tgl\" data-id=\""+g+"\" aria-expanded=\""+open+"\"><span class=\"chev\"></span>"+
-        (sec==="expense"?"<span class=\"dot\" style=\"background:"+groupColor(g)+"\"></span>":"")+
-        "<span class=\"nm\">"+esc(gi.name)+"</span><span class=\"cnt num\">"+items.length+"</span><span class=\"num\" data-sub=\""+g+"\"></span></button>"+
-        "<button type=\"button\" class=\"x\" data-act=\"rm-group\" data-id=\""+g+"\" aria-label=\""+t("removeGroup")+": "+esc(gi.name)+"\" title=\""+t("removeGroup")+"\">×</button></div>";
+      body+='<div class="grp-head"><button type="button" class="grp-tgl" data-act="tgl" data-id="'+g+'" aria-expanded="'+open+'"><span class="chev"></span>'+
+        (sec==="expense"?'<span class="dot" style="background:'+groupColor(g)+'"></span>':"")+
+        '<span class="nm">'+esc(gi.name)+'</span><span class="cnt num">'+items.length+'</span><span class="num" data-sub="'+g+'"></span></button>'+
+        '<button type="button" class="ibtn plain" data-act="rm-group" data-id="'+g+'" aria-label="הסרת הקבוצה '+esc(gi.name)+'" title="הסרת קבוצה">'+ic("trash")+'</button></div>';
       if(open)body+=items.map(rowHtml).join("");
     });
-    if(!body)body="<p class=\"empty\">"+t("empty")+"</p>";
-    html+="<section class=\"card sec sec-"+sec+"\"><div class=\"sec-head\"><h2>"+t(sec)+"</h2><span class=\"tot\" data-tot=\""+sec+"\"></span></div>"+
-      (sec==="savings"?"<p class=\"note\" style=\"padding-bottom:10px\">"+t("savNote")+"</p>":"")+body+
-      "<div class=\"sec-foot\"><button type=\"button\" class=\"add\" data-act=\"open-add\" data-sec=\""+sec+"\">+ "+t("add_"+sec)+"</button></div></section>";
+    if(!body)body='<p class="empty">עדיין אין כאן סעיפים. לחצו על הפלוס או בחרו תבנית.</p>';
+    html+='<section class="card sec sec-'+sec+'"><div class="sec-head"><h2>'+SEC_NAME[sec]+'</h2><span class="tot" data-tot="'+sec+'"></span>'+
+      '<button type="button" class="sec-add" data-act="open-add" data-sec="'+sec+'" aria-label="'+ADD_NAME[sec]+'" title="'+ADD_NAME[sec]+'">'+ic("plus")+'</button></div>'+
+      (sec==="savings"?'<p class="note">שכר הנטו כבר אינו כולל הפרשות לפנסיה ולקרן השתלמות דרך המעסיק. הזינו רק הפקדות שאתם מבצעים בעצמכם.</p>':"")+body+'</section>';
   });
-  document.getElementById("sections").innerHTML=html;
+  box.innerHTML=html;
   refreshFigures();
 }
 function refreshFigures(){
   var T=totals(),map={income:T.inc,expense:T.exp,savings:T.sav};
-  document.querySelectorAll("[data-tot]").forEach(function(el){el.innerHTML="<span class=\"num\">"+fmt(map[el.getAttribute("data-tot")])+"</span> <small>"+t("perMonth")+"</small>";});
+  document.querySelectorAll("[data-tot]").forEach(function(el){el.innerHTML=num(map[el.getAttribute("data-tot")])+" <small>לחודש</small>";});
   document.querySelectorAll("[data-sub]").forEach(function(el){var g=el.getAttribute("data-sub");el.textContent=fmt(sumBy(function(it){return it.group===g;}));});
-  document.querySelectorAll("[data-eq]").forEach(function(el){
-    var it=find(el.getAttribute("data-eq"));
-    el.innerHTML=eqHtml(it);
-  });
+  document.querySelectorAll("[data-eq]").forEach(function(el){el.innerHTML=eqHtml(find(el.getAttribute("data-eq")));});
   drawSummary();
 }
-function renderAll(){drawHeader();drawTools();drawSections();if(dlgMode)drawDialog();}
-function find(id){for(var i=0;i<state.items.length;i++)if(state.items[i].id===id)return state.items[i];return null;}
+var heroIO=null;
+function viewBudget(el){
+  el.innerHTML='<section class="hero" id="summary" aria-live="polite"></section><div class="quick" id="quick">'+quickHtml()+'</div>'+
+    (state.example?'<div class="banner"><span>הסכומים כאן הם לדוגמה. החליפו אותם בסכומים שלכם.</span><button type="button" class="ibtn" data-act="clear-now" aria-label="איפוס הסכומים" title="איפוס הסכומים">'+ic("reset")+'</button></div>':"")+
+    '<div id="sections" class="stack"></div>';
+  drawSections();
+  if("IntersectionObserver" in window){
+    if(heroIO)heroIO.disconnect();
+    heroIO=new IntersectionObserver(function(en){document.getElementById("chipleft").classList.toggle("show",!en[0].isIntersecting);},{threshold:0});
+    heroIO.observe(document.getElementById("summary"));
+  }
+}
+
+/* ---------- history view ---------- */
+function viewHistory(el){
+  document.getElementById("chipleft").classList.remove("show");
+  var hs=histSorted().reverse();
+  var html='<h2 class="view-title">היסטוריה<button type="button" class="btn primary sm" data-act="open-save">'+ic("save")+'שמירת חודש</button></h2>';
+  if(!hs.length){
+    html+='<div class="card emptystate"><div class="tile">'+ic("calendar")+'</div><p>עדיין לא נשמרו חודשים.</p><p class="small">בסוף כל חודש שמרו את התקציב, וכך תוכלו לראות איך הוא משתנה לאורך זמן.</p></div>';
+  }
+  hs.forEach(function(h,i){
+    var prev=hs[i+1],open=!!openHist[h.month],neg=h.left<-0.5,pos=h.left>0.5;
+    var delta=prev?h.left-prev.left:null;
+    html+='<section class="card hcard"><div class="hrow"><span class="m">'+monthLabel(h.month)+'</span><span class="hleft num'+(neg?" neg":pos?" pos":"")+'">'+fmt(h.left)+'</span></div>'+
+      '<div class="htrio"><div>הכנסות<b class="num">'+fmt(h.inc)+'</b></div><div>הוצאות<b class="num">'+fmt(h.exp)+'</b></div><div>חיסכון<b class="num">'+fmt(h.sav)+'</b></div></div>'+
+      (delta!==null?'<p class="small muted">לעומת '+monthLabel(prev.month)+': נשאר '+(delta>=0?"יותר ב-":"פחות ב-")+num(Math.abs(delta))+'</p>':"")+
+      '<div class="hrow"><button type="button" class="hdet" data-act="h-tgl" data-id="'+h.month+'" aria-expanded="'+open+'"><span class="chev"></span>פירוט לפי קבוצות</button>'+
+      '<button type="button" class="ibtn plain neutral" data-act="h-view" data-id="'+h.month+'" aria-label="הצגה באנליטיקה" title="הצגה באנליטיקה">'+ic("chart")+'</button>'+
+      '<button type="button" class="ibtn plain neutral" data-act="h-restore" data-id="'+h.month+'" aria-label="טעינת החודש לתקציב" title="טעינת החודש לתקציב">'+ic("restore")+'</button>'+
+      '<button type="button" class="ibtn plain" data-act="h-del" data-id="'+h.month+'" aria-label="מחיקת החודש" title="מחיקה">'+ic("trash")+'</button></div>';
+    if(open){
+      html+='<ul class="list">'+(h.groups||[]).map(function(g){
+        return '<li><span class="dot" style="background:'+(g.sec==="expense"?groupColor(g.id):g.sec==="income"?"var(--good)":"var(--accent)")+'"></span><span class="nm">'+esc(g.name)+'</span><b class="num">'+fmt(g.amount)+'</b><span class="pc num">'+(g.sec==="income"?"":pct(g.amount,h.inc))+'</span></li>';
+      }).join("")+'</ul><p class="small muted">האחוזים הם מתוך סך ההכנסות.</p>';
+    }
+    html+='</section>';
+  });
+  el.innerHTML=html;
+}
+
+/* ---------- analytics view ---------- */
+function expenseSlices(d){
+  var named=[],other=0;
+  d.groups.forEach(function(g){if(g.sec!=="expense")return;if(SLOT[g.id])named.push({name:g.name,amount:g.amount,color:groupColor(g.id),slot:SLOT[g.id]});else other+=g.amount;});
+  named.sort(function(a,b){return a.slot-b.slot;});
+  if(other>0)named.push({name:"אחר",amount:other,color:"var(--s-other)"});
+  return named;
+}
+function donutSvg(slices,total,center1,center2){
+  var r=70,C=2*Math.PI*r,off=0,out="";
+  slices.forEach(function(s){
+    var len=s.amount/total*C,vis=Math.max(len-2,0.5);
+    out+='<circle cx="100" cy="100" r="'+r+'" fill="none" stroke="'+s.color+'" stroke-width="28" stroke-dasharray="'+vis.toFixed(2)+' '+(C-vis).toFixed(2)+'" stroke-dashoffset="'+(-off).toFixed(2)+'"><title>'+esc(s.name)+': '+fmt(s.amount)+' ('+pct(s.amount,total)+')</title></circle>';
+    off+=len;
+  });
+  return '<svg class="donut" viewBox="0 0 200 200" role="img" aria-label="חלוקת ההוצאות לפי קבוצות"><g transform="rotate(-90 100 100)">'+out+'</g>'+
+    '<text x="100" y="98" text-anchor="middle" style="font:800 22px var(--font);fill:var(--ink)" direction="ltr">'+center1+'</text>'+
+    '<text x="100" y="120" text-anchor="middle" style="font:400 13px var(--font);fill:var(--muted)">'+center2+'</text></svg>';
+}
+function niceMax(v){
+  if(v<=0)return 1000;var p=Math.pow(10,Math.floor(Math.log10(v))),n=v/p;
+  var st=[1,1.2,1.5,2,2.5,3,4,5,6,8,10];for(var i=0;i<st.length;i++)if(n<=st[i])return st[i]*p;return 10*p;
+}
+function topBar(x,y,w,h,col){
+  if(h<=0)return "";var r=Math.min(4,h,w/2);
+  return '<path fill="'+col+'" d="M'+x+' '+(y+h)+'V'+(y+r)+'Q'+x+' '+y+' '+(x+r)+' '+y+'H'+(x+w-r)+'Q'+(x+w)+' '+y+' '+(x+w)+' '+(y+r)+'V'+(y+h)+'Z"/>';
+}
+function trendSvg(hs,sel){
+  var W=360,H=230,ml=4,mr=4,mt=18,mb=28,n=hs.length,pw=W-ml-mr,ph=H-mt-mb;
+  var max=0;hs.forEach(function(h){max=Math.max(max,h.inc,h.exp+h.sav);});max=niceMax(max);
+  var out="";
+  [0,0.5,1].forEach(function(f){
+    var y=mt+ph-f*ph;
+    out+='<line x1="'+ml+'" x2="'+(W-mr)+'" y1="'+y+'" y2="'+y+'" stroke="var(--line)" stroke-width="1"/>';
+    if(f>0)out+='<text x="'+(ml+2)+'" y="'+(y-4)+'">'+fmt(max*f)+'</text>';
+  });
+  var band=pw/n,bw=Math.max(4,Math.min(22,band*0.3));
+  hs.forEach(function(h,i){
+    var cx=ml+band*i+band/2,hi=h.inc/max*ph,ho=(h.exp+h.sav)/max*ph;
+    if(i===sel)out+='<rect x="'+(ml+band*i+2)+'" y="'+mt+'" width="'+(band-4)+'" height="'+ph+'" rx="6" fill="var(--accent-soft)"/>';
+    out+=topBar(cx-bw-1,mt+ph-hi,bw,hi,"var(--s1)")+topBar(cx+1,mt+ph-ho,bw,ho,"var(--s2)");
+    out+='<text x="'+cx+'" y="'+(H-10)+'" text-anchor="middle"'+(i===sel?' style="fill:var(--ink);font-weight:700"':"")+'>'+monthShort(h.month)+'</text>';
+    out+='<rect x="'+(ml+band*i)+'" y="0" width="'+band+'" height="'+H+'" fill="transparent" data-act="trend" data-i="'+i+'" style="cursor:pointer"><title>'+monthLabel(h.month)+'</title></rect>';
+  });
+  return '<svg class="chart" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="הכנסות מול הוצאות וחיסכון לפי חודשים">'+out+'</svg>';
+}
+function viewAnalytics(el){
+  document.getElementById("chipleft").classList.remove("show");
+  var hsAll=histSorted(),h=anSrc==="now"?null:hsAll.filter(function(x){return x.month===anSrc;})[0];
+  if(anSrc!=="now"&&!h)anSrc="now";
+  var d=h?dataOf(h):dataNow();
+  var html='<h2 class="view-title">אנליטיקה</h2>'+
+    '<label class="small" for="an-src">הנתונים המוצגים<select id="an-src" class="field"><option value="now">התקציב הנוכחי</option>'+
+    hsAll.slice().reverse().map(function(x){return '<option value="'+x.month+'"'+(x.month===anSrc?" selected":"")+'>'+monthLabel(x.month)+'</option>';}).join("")+'</select></label>';
+
+  if(d.inc<=0&&d.exp<=0&&d.sav<=0){
+    html+='<div class="card emptystate"><div class="tile">'+ic("chart")+'</div><p>אין עדיין סכומים להצגה.</p><p class="small">הזינו הכנסות והוצאות בלשונית התקציב.</p></div>';
+  }else{
+    /* key figures */
+    var housing=0,kids=0;d.groups.forEach(function(g){if(g.id==="housing")housing=g.amount;if(g.id==="kids")kids=g.amount;});
+    function kpi(v,l,s){return '<div class="kpi"><div class="v num">'+v+'</div><div class="l">'+l+(s?'<br>'+s:"")+'</div></div>';}
+    html+='<section class="card pad"><h3 class="card-title" style="margin:0">מדדים מרכזיים</h3><div class="kpis">'+
+      kpi(pct(d.sav,d.inc),"שיעור החיסכון מההכנסה")+
+      kpi(pct(d.exp,d.inc),"הוצאות מתוך ההכנסה")+
+      kpi(pct(housing,d.inc),"דיור מתוך ההכנסה",num(housing)+" לחודש")+
+      kpi(pct(kids,d.inc),"ילדים מתוך ההכנסה",d.kids>0&&kids>0?num(kids/d.kids)+" לילד":num(kids)+" לחודש")+
+      '</div></section>';
+
+    /* where income goes */
+    if(d.inc>0){
+      var parts=[["הוצאות",d.exp,"var(--s2)"],["חיסכון",d.sav,"var(--s1)"],["נשאר",Math.max(d.left,0),"var(--s3)"]].filter(function(p){return p[1]>0;});
+      var tot=Math.max(d.inc,d.exp+d.sav);
+      html+='<section class="card pad"><h3 class="card-title" style="margin:0">מה קורה עם ההכנסה</h3><div class="usebar" role="img" aria-label="חלוקת ההכנסה">'+
+        parts.map(function(p){return '<span style="width:'+(p[1]/tot*100).toFixed(2)+'%;background:'+p[2]+'" title="'+p[0]+': '+fmt(p[1])+'"></span>';}).join("")+'</div><ul class="list">'+
+        parts.map(function(p){return '<li><span class="sq" style="background:'+p[2]+'"></span><span class="nm">'+p[0]+'</span><b class="num">'+fmt(p[1])+'</b><span class="pc num">'+pct(p[1],d.inc)+'</span></li>';}).join("")+
+        '</ul>'+(d.left<-0.5?'<p class="small" style="color:var(--bad);font-weight:500">ההוצאות והחיסכון גבוהים מההכנסה ב-'+num(-d.left)+'.</p>':"")+'</section>';
+    }
+
+    /* expenses by group */
+    var sl=expenseSlices(d);
+    if(sl.length&&d.exp>0){
+      html+='<section class="card pad"><h3 class="card-title" style="margin:0">ההוצאות לפי קבוצות</h3><div class="donut-wrap">'+donutSvg(sl,d.exp,fmt(d.exp),"הוצאות לחודש")+'<ul class="list">'+
+        sl.map(function(s){return '<li><span class="sq" style="background:'+s.color+'"></span><span class="nm">'+esc(s.name)+'</span><b class="num">'+fmt(s.amount)+'</b><span class="pc num">'+pct(s.amount,d.exp)+'</span></li>';}).join("")+
+        '</ul></div><p class="small muted">האחוזים הם מתוך סך ההוצאות.</p></section>';
+    }
+
+    /* biggest expenses */
+    var top=d.items.filter(function(i){return i.sec==="expense";}).sort(function(a,b){return b.monthly-a.monthly;}).slice(0,6);
+    if(top.length){
+      var mx=top[0].monthly;
+      html+='<section class="card pad"><h3 class="card-title" style="margin:0">ההוצאות הגדולות ביותר</h3>'+top.map(function(i){
+        return '<div class="hbar"><span class="t">'+esc(i.name)+'</span><span><b class="num">'+fmt(i.monthly)+'</b> <span class="muted small num">'+pct(i.monthly,d.exp)+'</span></span><div class="track"><span style="width:'+(i.monthly/mx*100).toFixed(1)+'%"></span></div></div>';
+      }).join("")+'<p class="small muted">סכום חודשי, והאחוז מתוך סך ההוצאות.</p></section>';
+    }
+  }
+
+  /* trend across saved months */
+  var hs=hsAll.slice(-12);
+  html+='<section class="card pad"><h3 class="card-title" style="margin:0">מגמה לפי חודשים</h3>';
+  if(!hs.length){
+    html+='<p class="muted">שמרו חודשים בהיסטוריה כדי לראות כאן איך התקציב משתנה לאורך זמן.</p>';
+  }else{
+    var si=trendSel===null||trendSel>=hs.length?hs.length-1:trendSel,x=hs[si];
+    html+='<div class="legend-row"><span><i class="sq" style="background:var(--s1)"></i>הכנסות</span><span><i class="sq" style="background:var(--s2)"></i>הוצאות וחיסכון</span></div>'+
+      trendSvg(hs,si)+
+      '<div class="detail"><span class="full">'+monthLabel(x.month)+'</span><span>הכנסות: <b class="num">'+fmt(x.inc)+'</b></span><span>הוצאות: <b class="num">'+fmt(x.exp)+'</b></span><span>חיסכון: <b class="num">'+fmt(x.sav)+'</b></span><span>נשאר: <b class="num">'+fmt(x.left)+'</b></span></div>'+
+      (hs.length>1?'<p class="small muted">לחצו על חודש בגרף כדי לראות את הנתונים שלו.</p>':"");
+  }
+  html+='</section>';
+  el.innerHTML=html;
+}
+
+/* ---------- settings view ---------- */
+function viewSettings(el){
+  document.getElementById("chipleft").classList.remove("show");
+  var th=curTheme();
+  function row(act,icon,title,desc,extra,cls){
+    return '<button type="button" class="set-row'+(cls?" "+cls:"")+'" data-act="'+act+'"><span class="tile">'+ic(icon)+'</span><span class="txt"><b>'+title+'</b>'+(desc?'<small>'+desc+'</small>':"")+'</span>'+(extra||"")+'</button>';
+  }
+  el.innerHTML='<h2 class="view-title">הגדרות</h2>'+
+    '<section class="card set"><div class="set-title">תצוגה</div>'+
+    '<div class="set-row"><span class="tile">'+ic(th==="dark"?"moon":"sun")+'</span><span class="txt"><b>ערכת צבעים</b></span>'+
+    '<span class="seg" role="group" aria-label="ערכת צבעים"><button type="button" data-act="theme" data-v="light" aria-pressed="'+(th==="light")+'">'+ic("sun")+'בהירה</button><button type="button" data-act="theme" data-v="dark" aria-pressed="'+(th==="dark")+'">'+ic("moon")+'כהה</button></span></div>'+
+    '<div class="set-row"><span class="tile">'+ic("kids")+'</span><span class="txt"><b>מספר הילדים</b><small>משמש לחישוב העלות לילד</small></span>'+
+    '<span class="stepper"><button type="button" data-act="kids" data-v="-1" aria-label="פחות ילדים">−</button><b class="num" id="kids-n">'+state.kids+'</b><button type="button" data-act="kids" data-v="1" aria-label="עוד ילד">+</button></span></div></section>'+
+
+    '<section class="card set"><div class="set-title">שמירה וסנכרון</div>'+
+    row("open-gh","cloud","סנכרון עם GitHub",'<span id="gh-status"></span>')+
+    row("refresh","refresh","רענון","טעינה מחדש של האפליקציה ושל הנתונים העדכניים")+'</section>'+
+
+    '<section class="card set"><div class="set-title">ייצוא</div>'+
+    row("excel","download","הורדה כקובץ אקסל","התקציב, הסיכום וההיסטוריה בקובץ ‎.xlsx")+
+    row("copy","copy","העתקת סיכום","סיכום התקציב כטקסט, להדבקה בהודעה")+'</section>'+
+
+    '<section class="card set"><div class="set-title">נתונים</div>'+
+    row("open-tpl","grid","תבניות","תבניות מוכנות ותבניות ששמרתם")+
+    row("clear","reset","איפוס כל הסכומים","הסעיפים נשארים, הסכומים מתאפסים","","danger")+'</section>';
+}
 
 /* ---------- dialogs ---------- */
 var dlg=document.getElementById("dlg"),dlgInner=document.getElementById("dlg-inner");
@@ -702,54 +902,73 @@ function openDialog(mode,sec){dlgMode=mode;dlgSec=sec||null;dlgFilter="";drawDia
 function closeDialog(){dlgMode=null;if(dlg.open)dlg.close();}
 dlg.addEventListener("close",function(){dlgMode=null;});
 dlg.addEventListener("click",function(e){if(e.target===dlg)closeDialog();});
-function head(title){return "<div class=\"dlg-head\"><h3>"+title+"</h3><button type=\"button\" class=\"x\" data-act=\"close\" aria-label=\""+t("close")+"\">×</button></div>";}
+function head(title){return '<div class="dlg-head"><h3>'+title+'</h3><button type="button" class="ibtn plain neutral" data-act="close" aria-label="סגירה">'+ic("close")+'</button></div>';}
 function pickHtml(){
   var q=dlgFilter.trim().toLowerCase(),out="";
   groupsOf(dlgSec).forEach(function(g){
-    var chips=C.filter(function(c){return c[1]===g&&(!q||c[2].toLowerCase().indexOf(q)>-1||c[3].indexOf(q)>-1);}).map(function(c){
+    var chips=C.filter(function(c){return c[1]===g&&(!q||c[3].indexOf(q)>-1||c[2].toLowerCase().indexOf(q)>-1);}).map(function(c){
       var on=state.items.some(function(it){return it.key===c[0];});
-      return "<button type=\"button\" class=\"chip\" data-act=\"toggle\" data-key=\""+c[0]+"\" aria-pressed=\""+on+"\">"+esc(state.lang==="he"?c[3]:c[2])+"</button>";
+      return '<button type="button" class="chip" data-act="toggle" data-key="'+c[0]+'" aria-pressed="'+on+'">'+esc(c[3])+'</button>';
     }).join("");
-    if(chips)out+="<h4>"+esc(groupInfo(g).name)+"</h4><div class=\"chips\">"+chips+"</div>";
+    if(chips)out+='<h4>'+esc(groupInfo(g).name)+'</h4><div class="chips">'+chips+'</div>';
   });
-  return out||"<p class=\"muted\">"+t("noMatch")+"</p>";
+  return out||'<p class="muted">לא נמצאו סעיפים מתאימים.</p>';
 }
 function drawDialog(){
   if(dlgMode==="add"){
-    var opts=groupsOf(dlgSec).map(function(g){return "<option value=\""+g+"\">"+esc(groupInfo(g).name)+"</option>";}).join("")+"<option value=\"__new\">"+t("newGroup")+"</option>";
-    dlgInner.innerHTML=head(t("add_"+dlgSec))+"<div class=\"dlg-body\">"+
-      "<input type=\"search\" class=\"field\" id=\"pick-q\" placeholder=\""+t("search")+"\" aria-label=\""+t("search")+"\">"+
-      "<div class=\"pick\" id=\"pick\">"+pickHtml()+"</div>"+
-      "<form class=\"custom\" id=\"custom-form\"><h4 style=\"margin:0\">"+t("custom")+"</h4><div class=\"inline\">"+
-      "<input type=\"text\" class=\"field\" id=\"c-name\" placeholder=\""+t("customName")+"\" aria-label=\""+t("customName")+"\" maxlength=\"60\" required>"+
-      "<select id=\"c-group\" aria-label=\""+t("newGroupName")+"\">"+opts+"</select></div>"+
-      "<div class=\"inline\"><input type=\"text\" class=\"field\" id=\"c-newgroup\" placeholder=\""+t("newGroupName")+"\" aria-label=\""+t("newGroupName")+"\" maxlength=\"40\" hidden>"+
-      "<button type=\"submit\" class=\"btn primary\">"+t("addBtn")+"</button></div></form></div>";
+    var opts=groupsOf(dlgSec).map(function(g){return '<option value="'+g+'">'+esc(groupInfo(g).name)+'</option>';}).join("")+'<option value="__new">קבוצה חדשה…</option>';
+    dlgInner.innerHTML=head(ADD_NAME[dlgSec])+'<div class="dlg-body">'+
+      '<input type="search" class="field" id="pick-q" placeholder="חיפוש סעיפים" aria-label="חיפוש סעיפים">'+
+      '<p class="small muted">לחצו על סעיף כדי להוסיף אותו, ושוב כדי להסיר.</p>'+
+      '<div class="pick" id="pick">'+pickHtml()+'</div>'+
+      '<form class="custom" id="custom-form"><h4 style="margin:0">סעיף מותאם אישית</h4><div class="inline">'+
+      '<input type="text" class="field" id="c-name" placeholder="שם הסעיף" aria-label="שם הסעיף" maxlength="60" required>'+
+      '<select id="c-group" aria-label="קבוצה">'+opts+'</select></div>'+
+      '<div class="inline"><input type="text" class="field" id="c-newgroup" placeholder="שם הקבוצה החדשה" aria-label="שם הקבוצה החדשה" maxlength="40" hidden>'+
+      '<button type="submit" class="btn primary">'+ic("plus")+'הוספה</button></div></form></div>';
   }else if(dlgMode==="gh"){
     var c=gh||ghDefaults();
-    function f(id,key,val,type){return "<label class=\"small\" for=\""+id+"\">"+t(key)+"<input type=\""+(type||"text")+"\" class=\"field\" id=\""+id+"\" value=\""+esc(val)+"\" autocomplete=\"off\" autocapitalize=\"off\" spellcheck=\"false\" dir=\"ltr\" required></label>";}
-    dlgInner.innerHTML=head(t("ghTitle"))+"<div class=\"dlg-body\"><p class=\"small\" style=\"margin:0\">"+t("ghIntro")+"</p>"+
-      "<form id=\"gh-form\" style=\"display:flex;flex-direction:column;gap:10px\">"+
-      "<div class=\"inline\">"+f("gh-owner","ghOwner",c.owner)+f("gh-repo","ghRepo",c.repo)+"</div>"+
-      "<div class=\"inline\">"+f("gh-branch","ghBranch",c.branch)+f("gh-path","ghPath",c.path)+"</div>"+
-      f("gh-token","ghToken",c.token,"password")+
-      "<p class=\"small muted\" style=\"margin:0\">"+t("ghTokenHint")+"</p>"+
-      "<div class=\"tpl acts\" style=\"border:0;padding:0;flex-direction:row\"><button type=\"submit\" class=\"btn primary\">"+t("ghConnect")+"</button>"+
-      (gh?"<button type=\"button\" class=\"btn ghost danger\" data-act=\"gh-off\">"+t("ghDisconnect")+"</button>":"")+"</div>"+
-      "<p id=\"gh-msg\" role=\"status\" style=\"margin:0;font-weight:500\">"+(gh&&ghState?t(ghState):"")+"</p></form></div>";
+    var f=function(id,label,val,type){return '<label class="small" for="'+id+'">'+label+'<input type="'+(type||"text")+'" class="field" id="'+id+'" value="'+esc(val)+'" autocomplete="off" autocapitalize="off" spellcheck="false" dir="ltr" required></label>';};
+    dlgInner.innerHTML=head("סנכרון עם GitHub")+'<div class="dlg-body"><p class="small">התקציב נשמר בקובץ JSON במאגר ה-GitHub שלכם, כך שכל מכשיר וכל אדם שמחובר אליו רואה את אותם נתונים. אסימון הגישה נשמר רק בדפדפן הזה ואינו נכתב לקובץ.</p>'+
+      '<form id="gh-form" style="display:flex;flex-direction:column;gap:10px">'+
+      '<div class="inline">'+f("gh-owner","בעלים",c.owner)+f("gh-repo","מאגר",c.repo)+'</div>'+
+      '<div class="inline">'+f("gh-branch","ענף",c.branch)+f("gh-path","נתיב הקובץ",c.path)+'</div>'+
+      f("gh-token","אסימון גישה",c.token,"password")+
+      '<p class="small muted">ב-GitHub, צרו fine-grained personal access token שמוגבל למאגר הזה בלבד, עם הרשאת Contents במצב Read and write.</p>'+
+      '<div class="acts"><button type="submit" class="btn primary">התחברות</button>'+
+      (gh?'<button type="button" class="btn danger" data-act="gh-off">ניתוק</button>':"")+'</div>'+
+      '<p id="gh-msg" role="status" style="font-weight:500">'+(gh&&ghState?GHM[ghState]:"")+'</p></form></div>';
+  }else if(dlgMode==="save"){
+    var now=thisMonth().split("-"),y=Number(now[0]),T=totals();
+    var ms=MONTHS.map(function(m,i){return '<option value="'+("0"+(i+1)).slice(-2)+'"'+(i+1===Number(now[1])?" selected":"")+'>'+m+'</option>';}).join("");
+    var ys="";for(var yy=y-4;yy<=y+1;yy++)ys+='<option value="'+yy+'"'+(yy===y?" selected":"")+'>'+yy+'</option>';
+    dlgInner.innerHTML=head("שמירת חודש בהיסטוריה")+'<div class="dlg-body"><p class="small">התקציב הנוכחי יישמר כתמונת מצב של החודש שתבחרו.</p>'+
+      '<form id="save-form" style="display:flex;flex-direction:column;gap:12px"><div class="inline">'+
+      '<label class="small" for="save-m">חודש<select id="save-m" class="field">'+ms+'</select></label>'+
+      '<label class="small" for="save-y">שנה<select id="save-y" class="field">'+ys+'</select></label></div>'+
+      '<div class="detail"><span>הכנסות: <b class="num">'+fmt(T.inc)+'</b></span><span>הוצאות: <b class="num">'+fmt(T.exp)+'</b></span><span>חיסכון: <b class="num">'+fmt(T.sav)+'</b></span><span>נשאר: <b class="num">'+fmt(T.left)+'</b></span></div>'+
+      '<p class="small" id="save-note" style="color:var(--warm);font-weight:500"></p>'+
+      '<button type="submit" class="btn primary">'+ic("save")+'שמירה</button></form></div>';
+    saveNote();
   }else if(dlgMode==="tpl"){
     var ready=READY.map(function(r){
-      return "<div class=\"tpl\"><div><b>"+esc(state.lang==="he"?r.he:r.en)+"</b> <span class=\"muted small\">· "+r.keys.split(" ").length+" "+t("items")+"</span></div><div class=\"acts\"><button type=\"button\" class=\"btn sm primary\" data-act=\"tpl-use\" data-kind=\"ready\" data-id=\""+r.id+"\">"+t("replace")+"</button><button type=\"button\" class=\"btn sm\" data-act=\"tpl-merge\" data-kind=\"ready\" data-id=\""+r.id+"\">"+t("merge")+"</button></div></div>";
+      return '<div class="tpl"><div><b>'+esc(r.he)+'</b> <span class="muted small">· '+r.keys.split(" ").length+' סעיפים</span></div><div class="acts"><button type="button" class="btn sm primary" data-act="tpl-use" data-kind="ready" data-id="'+r.id+'">החלפת הרשימה</button><button type="button" class="btn sm" data-act="tpl-merge" data-kind="ready" data-id="'+r.id+'">הוספה לרשימה</button></div></div>';
     }).join("");
     var mine=state.templates.length?state.templates.map(function(m){
-      return "<div class=\"tpl\"><div><b>"+esc(m.name)+"</b> <span class=\"muted small\">· "+m.items.length+" "+t("items")+"</span></div><div class=\"acts\"><button type=\"button\" class=\"btn sm primary\" data-act=\"tpl-use\" data-kind=\"mine\" data-id=\""+m.id+"\">"+t("replace")+"</button><button type=\"button\" class=\"btn sm\" data-act=\"tpl-merge\" data-kind=\"mine\" data-id=\""+m.id+"\">"+t("merge")+"</button><button type=\"button\" class=\"btn sm ghost danger\" data-act=\"tpl-del\" data-id=\""+m.id+"\">"+t("del")+"</button></div></div>";
-    }).join(""):"<p class=\"muted\" style=\"margin:0\">"+t("noMine")+"</p>";
-    dlgInner.innerHTML=head(t("templates"))+"<div class=\"dlg-body\">"+
-      "<h4 style=\"margin:0\">"+t("mine")+"</h4>"+mine+
-      "<form class=\"custom\" id=\"tpl-form\" style=\"border-top:0;padding-top:0\"><div class=\"inline\"><input type=\"text\" class=\"field\" id=\"tpl-name\" placeholder=\""+t("tplName")+"\" aria-label=\""+t("tplName")+"\" maxlength=\"50\" required><button type=\"submit\" class=\"btn\">"+t("save")+"</button></div>"+
-      "<label class=\"chk\"><input type=\"checkbox\" id=\"tpl-amounts\"> "+t("withAmounts")+"</label><span class=\"muted small\">"+t("saveTpl")+"</span></form>"+
-      "<h4 style=\"margin:0\">"+t("ready")+"</h4><p class=\"muted small\" style=\"margin:0\">"+t("replaceHint")+"</p>"+ready+"</div>";
+      return '<div class="tpl"><div><b>'+esc(m.name)+'</b> <span class="muted small">· '+m.items.length+' סעיפים</span></div><div class="acts"><button type="button" class="btn sm primary" data-act="tpl-use" data-kind="mine" data-id="'+m.id+'">החלפת הרשימה</button><button type="button" class="btn sm" data-act="tpl-merge" data-kind="mine" data-id="'+m.id+'">הוספה לרשימה</button><button type="button" class="ibtn plain" data-act="tpl-del" data-id="'+m.id+'" aria-label="מחיקת התבנית" title="מחיקה">'+ic("trash")+'</button></div></div>';
+    }).join(""):'<p class="muted">עדיין אין תבניות שמורות.</p>';
+    dlgInner.innerHTML=head("תבניות")+'<div class="dlg-body">'+
+      '<h4 style="margin:0">תבניות מוכנות</h4><p class="muted small">החלפה שומרת את הסכומים של סעיפים שקיימים גם בתבנית.</p>'+ready+
+      '<h4 style="margin:0">התבניות שלך</h4>'+mine+
+      '<form class="custom" id="tpl-form"><h4 style="margin:0">שמירת הרשימה הנוכחית כתבנית</h4><div class="inline"><input type="text" class="field" id="tpl-name" placeholder="שם התבנית" aria-label="שם התבנית" maxlength="50" required><button type="submit" class="btn">'+ic("plus")+'שמירה</button></div>'+
+      '<label class="chk"><input type="checkbox" id="tpl-amounts"> כולל הסכומים</label></form></div>';
   }
+}
+function saveMonthValue(){return document.getElementById("save-y").value+"-"+document.getElementById("save-m").value;}
+function saveNote(){
+  var el=document.getElementById("save-note");if(!el)return;
+  var m=saveMonthValue(),ex=state.history.some(function(h){return h.month===m;});
+  el.textContent=ex?"כבר שמור חודש "+monthLabel(m)+". שמירה תחליף אותו.":"";
 }
 
 /* ---------- templates ---------- */
@@ -768,7 +987,7 @@ function applyTpl(tpl,mode){
     if(ti.key&&!CK[ti.key])return;
     if(!groupInfo(ti.group))return;
     var ex=old.filter(function(o){return same(ti,o);})[0];
-    if(mode==="merge"){if(ex)return;}
+    if(mode==="merge"&&ex)return;
     var amount=typeof ti.amount==="number"?ti.amount:(ex&&!(wasExample&&mode==="replace")?ex.amount:0);
     next.push({id:ex?ex.id:uid(),key:ti.key||null,name:ti.key?null:ti.name,group:ti.group,freq:ex&&typeof ti.amount!=="number"?ex.freq:ti.freq,amount:amount});
   });
@@ -777,45 +996,100 @@ function applyTpl(tpl,mode){
   pruneGroups();
 }
 function pruneGroups(){
-  var inTpl={};state.templates.forEach(function(m){(m.groups||[]).forEach(function(g){inTpl[g.id]=1;});});
-  state.groups=state.groups.filter(function(g){return inTpl[g.id]||state.items.some(function(it){return it.group===g.id;});});
+  var keep={};
+  state.templates.forEach(function(m){(m.groups||[]).forEach(function(g){keep[g.id]=1;});});
+  state.groups=state.groups.filter(function(g){return keep[g.id]||state.items.some(function(it){return it.group===g.id;});});
 }
 function summaryText(){
-  var T=totals(),lines=[t("title"),""];
+  var T=totals(),lines=["תקציב משפחתי",""];
   ["income","expense","savings"].forEach(function(sec){
-    lines.push(t(sec)+": "+fmt(sec==="income"?T.inc:sec==="expense"?T.exp:T.sav)+" "+t("perMonth"));
+    lines.push(SEC_NAME[sec]+": "+fmt(sec==="income"?T.inc:sec==="expense"?T.exp:T.sav)+" לחודש");
     state.items.forEach(function(it){if(secOf(it)===sec&&it.amount>0)lines.push("  "+itemName(it)+": "+fmt(monthly(it)));});
     lines.push("");
   });
-  lines.push(t("left")+": "+fmt(T.left));
+  lines.push("נשאר בכל חודש: "+fmt(T.left));
   return lines.join("\n");
+}
+
+/* ---------- Excel export ---------- */
+function r2(n){return Math.round(n*100)/100;}
+function loadXLSX(){
+  return new Promise(function(ok,fail){
+    if(window.XLSX)return ok(window.XLSX);
+    var s=document.createElement("script");
+    s.src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";
+    s.onload=function(){window.XLSX?ok(window.XLSX):fail();};s.onerror=fail;
+    document.head.appendChild(s);
+  });
+}
+function budgetRows(){
+  var rows=[["סוג","קבוצה","סעיף","סכום","תדירות","סכום חודשי"]];
+  ["income","expense","savings"].forEach(function(sec){groupsOf(sec).forEach(function(g){
+    state.items.forEach(function(it){if(it.group===g)rows.push([SEC_NAME[sec],groupInfo(g).name,itemName(it),r2(it.amount),FREQ[it.freq],r2(monthly(it))]);});
+  });});
+  return rows;
+}
+function downloadBlob(blob,name){
+  var a=document.createElement("a"),u=URL.createObjectURL(blob);
+  a.href=u;a.download=name;document.body.appendChild(a);a.click();
+  setTimeout(function(){URL.revokeObjectURL(u);a.remove();},1500);
+}
+function exportExcel(){
+  toast("מכין את הקובץ…");
+  var fname="family-budget-"+thisMonth();
+  loadXLSX().then(function(X){
+    var d=dataNow(),wb=X.utils.book_new();
+    function sheet(name,rows,widths){var ws=X.utils.aoa_to_sheet(rows);ws["!cols"]=widths.map(function(w){return {wch:w};});X.utils.book_append_sheet(wb,ws,name);}
+    var sum=[["תקציב משפחתי",monthLabel(thisMonth())],[],["הכנסות",r2(d.inc)],["הוצאות",r2(d.exp)],["חיסכון",r2(d.sav)],["נשאר בכל חודש",r2(d.left)],[],["קבוצה","סוג","סכום חודשי","אחוז מההכנסה"]];
+    d.groups.forEach(function(g){sum.push([g.name,SEC_NAME[g.sec],r2(g.amount),d.inc>0?r2(g.amount/d.inc*100):""]);});
+    sheet("סיכום",sum,[26,12,14,14]);
+    sheet("תקציב",budgetRows(),[10,26,40,12,14,14]);
+    var hs=histSorted(),hrows=[["חודש","הכנסות","הוצאות","חיסכון","נשאר"]],drows=[["חודש","סוג","קבוצה","סעיף","סכום חודשי"]];
+    hs.forEach(function(h){
+      hrows.push([monthLabel(h.month),r2(h.inc),r2(h.exp),r2(h.sav),r2(h.left)]);
+      var hd=dataOf(h),gname={};(h.groups||[]).forEach(function(g){gname[g.id]=g.name;});
+      hd.items.forEach(function(i){drows.push([monthLabel(h.month),SEC_NAME[i.sec],gname[i.group]||"",i.name,r2(i.monthly)]);});
+    });
+    sheet("היסטוריה",hrows,[16,12,12,12,12]);
+    sheet("היסטוריה - פירוט",drows,[16,10,26,40,14]);
+    wb.Workbook={Views:[{RTL:true}]};
+    X.writeFile(wb,fname+".xlsx");
+    toast("קובץ האקסל ירד למכשיר");
+  }).catch(function(){
+    var csv="﻿"+budgetRows().map(function(r){return r.map(function(c){return '"'+String(c).replace(/"/g,'""')+'"';}).join(",");}).join("\r\n");
+    try{downloadBlob(new Blob([csv],{type:"text/csv;charset=utf-8"}),fname+".csv");toast("לא ניתן היה ליצור קובץ xlsx. ירד קובץ CSV שנפתח באקסל");}
+    catch(e){toast("ההורדה נכשלה. בדקו את החיבור לאינטרנט ונסו שוב");}
+  });
 }
 
 /* ---------- events ---------- */
 document.addEventListener("click",function(e){
   var b=e.target.closest("[data-act]");if(!b)return;
   var act=b.getAttribute("data-act"),id=b.getAttribute("data-id");
-  if(act==="lang"){state.lang=b.getAttribute("data-v");persist();renderAll();}
-  else if(act==="kids"){state.kids=Math.max(0,Math.min(15,state.kids+Number(b.getAttribute("data-v"))));document.getElementById("kids-n").textContent=state.kids;persist();drawSummary();}
-  else if(act==="clear"){state.items.forEach(function(it){it.amount=0;});state.example=false;persist();renderAll();}
-  else if(act==="copy"){
-    var txt=summaryText();
-    try{navigator.clipboard.writeText(txt).then(function(){b.textContent=t("copied");setTimeout(function(){b.textContent=t("copy");},1600);},function(){});}catch(err){}
+  if(act==="nav"){go(b.getAttribute("data-v"));}
+  else if(act==="sync"){go("settings");}
+  else if(act==="refresh"){try{location.reload();}catch(err){if(gh)ghPull();}}
+  else if(act==="theme"){setTheme(b.getAttribute("data-v"));renderAll();}
+  else if(act==="kids"){state.kids=Math.max(0,Math.min(15,state.kids+Number(b.getAttribute("data-v"))));document.getElementById("kids-n").textContent=state.kids;persist();}
+  else if(act==="clear"||act==="clear-now"){
+    if(act==="clear"&&!confirmTap(b,"clear"))return;
+    state.items.forEach(function(it){it.amount=0;});state.example=false;persist();renderAll();toast("הסכומים אופסו");
   }
+  else if(act==="copy"){
+    try{navigator.clipboard.writeText(summaryText()).then(function(){toast("הסיכום הועתק");},function(){toast("ההעתקה נכשלה");});}catch(err){toast("ההעתקה נכשלה");}
+  }
+  else if(act==="excel"){exportExcel();}
   else if(act==="rm"){state.items=state.items.filter(function(it){return it.id!==id;});pruneGroups();persist();drawSections();}
-  else if(act==="rm-group"){state.items=state.items.filter(function(it){return it.group!==id;});pruneGroups();persist();drawSections();}
+  else if(act==="rm-group"){
+    if(!confirmTap(b,"g:"+id))return;
+    state.items=state.items.filter(function(it){return it.group!==id;});pruneGroups();persist();drawSections();
+  }
+  else if(act==="tgl"){collapsed[id]=!collapsed[id];saveUi();document.getElementById("quick").innerHTML=quickHtml();drawSections();}
+  else if(act==="tgl-all"){var all=allCollapsed();shownGroups().forEach(function(g){collapsed[g]=!all;});saveUi();document.getElementById("quick").innerHTML=quickHtml();drawSections();}
   else if(act==="open-add"){openDialog("add",b.getAttribute("data-sec"));}
-  else if(act==="tgl"){collapsed[id]=!collapsed[id];saveUi();drawTools();drawSections();}
-  else if(act==="tgl-all"){var all=allCollapsed();shownGroups().forEach(function(g){collapsed[g]=!all;});saveUi();drawTools();drawSections();}
   else if(act==="open-tpl"){openDialog("tpl");}
   else if(act==="open-gh"){openDialog("gh");}
-  else if(act==="refresh"){try{location.reload();}catch(err){if(gh)ghPull();}}
-  else if(act==="theme"){
-    var nt=curTheme()==="dark"?"light":"dark";
-    document.documentElement.setAttribute("data-theme",nt);
-    try{localStorage.setItem("il-family-budget-theme",nt);}catch(err){}
-    drawTools();
-  }
+  else if(act==="open-save"){openDialog("save");}
   else if(act==="gh-off"){ghDisconnect();drawDialog();}
   else if(act==="close"){closeDialog();}
   else if(act==="toggle"){
@@ -825,9 +1099,24 @@ document.addEventListener("click",function(e){
   }
   else if(act==="tpl-use"||act==="tpl-merge"){
     var tpl=tplItems(b.getAttribute("data-kind"),id);if(!tpl)return;
-    applyTpl(tpl,act==="tpl-use"?"replace":"merge");persist();closeDialog();renderAll();
+    applyTpl(tpl,act==="tpl-use"?"replace":"merge");persist();closeDialog();go("budget");
   }
-  else if(act==="tpl-del"){state.templates=state.templates.filter(function(m){return m.id!==id;});pruneGroups();persist();drawDialog();}
+  else if(act==="tpl-del"){
+    if(!confirmTap(b,"t:"+id))return;
+    state.templates=state.templates.filter(function(m){return m.id!==id;});pruneGroups();persist();drawDialog();
+  }
+  else if(act==="h-tgl"){openHist[id]=!openHist[id];renderAll();}
+  else if(act==="h-view"){anSrc=id;go("analytics");}
+  else if(act==="h-del"){
+    if(!confirmTap(b,"h:"+id))return;
+    state.history=state.history.filter(function(h){return h.month!==id;});persist();renderAll();toast("החודש נמחק מההיסטוריה");
+  }
+  else if(act==="h-restore"){
+    if(!confirmTap(b,"r:"+id))return;
+    var h=state.history.filter(function(x){return x.month===id;})[0];if(!h)return;
+    applyTpl({items:h.items,groups:h.cgroups||[]},"replace");persist();go("budget");toast("התקציב של "+monthLabel(id)+" נטען");
+  }
+  else if(act==="trend"){trendSel=Number(b.getAttribute("data-i"));var y=window.scrollY;renderAll();window.scrollTo(0,y);}
 });
 document.addEventListener("input",function(e){
   var el=e.target;
@@ -839,6 +1128,8 @@ document.addEventListener("change",function(e){
   var el=e.target;
   if(el.hasAttribute("data-freq")){var it=find(el.getAttribute("data-freq"));if(it){it.freq=el.value;persist();refreshFigures();}}
   else if(el.id==="c-group"){var ng=document.getElementById("c-newgroup");ng.hidden=el.value!=="__new";ng.required=el.value==="__new";if(!ng.hidden)ng.focus();}
+  else if(el.id==="an-src"){anSrc=el.value;renderAll();}
+  else if(el.id==="save-m"||el.id==="save-y"){saveNote();}
 });
 document.addEventListener("submit",function(e){
   e.preventDefault();
@@ -850,28 +1141,39 @@ document.addEventListener("submit",function(e){
       g="g"+uid();state.groups.push({id:g,name:gn,sec:dlgSec});
     }
     state.items.push({id:uid(),key:null,name:name,group:g,freq:"m",amount:0});collapsed[g]=false;
-    persist();drawSections();drawDialog();
+    persist();drawSections();drawDialog();toast("הסעיף נוסף");
   }else if(e.target.id==="gh-form"){
     var cfg={};["owner","repo","branch","path","token"].forEach(function(k){cfg[k]=document.getElementById("gh-"+k).value.trim();});
     cfg.path=cfg.path.replace(/^\/+/,"");
     if(!cfg.owner||!cfg.repo||!cfg.branch||!cfg.path||!cfg.token)return;
     ghConnect(cfg);drawDialog();
+  }else if(e.target.id==="save-form"){
+    var m=saveMonthValue();
+    state.history=state.history.filter(function(h){return h.month!==m;});
+    state.history.push(makeSnap(m));
+    persist();closeDialog();toast(monthLabel(m)+" נשמר בהיסטוריה");
+    if(view!=="budget")renderAll();
   }else if(e.target.id==="tpl-form"){
     var tn=document.getElementById("tpl-name").value.trim();if(!tn)return;
     var withAmt=document.getElementById("tpl-amounts").checked,used={};
     var items=state.items.map(function(it){used[it.group]=1;var o={key:it.key||null,name:it.key?null:it.name,group:it.group,freq:it.freq};if(withAmt)o.amount=it.amount;return o;});
     state.templates.push({id:"t"+uid(),name:tn,items:items,groups:state.groups.filter(function(g){return used[g.id];}).map(function(g){return {id:g.id,name:g.name,sec:g.sec};})});
-    persist();drawDialog();
+    persist();drawDialog();toast("התבנית נשמרה");
   }
 });
+
+/* ---------- no page zoom ---------- */
+["gesturestart","gesturechange","gestureend"].forEach(function(n){document.addEventListener(n,function(e){e.preventDefault();},{passive:false});});
+document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length>1)e.preventDefault();},{passive:false});
+document.addEventListener("wheel",function(e){if(e.ctrlKey||e.metaKey)e.preventDefault();},{passive:false});
+document.addEventListener("keydown",function(e){if((e.ctrlKey||e.metaKey)&&/^[+\-=0]$/.test(e.key))e.preventDefault();});
 
 /* ---------- start ---------- */
 state=load();
 gh=ghLoadCfg();
+setTheme(curTheme());
 renderAll();
-initCloud();
 if(gh)ghPull();
-if("IntersectionObserver" in window){new IntersectionObserver(function(en){document.getElementById("stick").classList.toggle("show",!en[0].isIntersecting);},{threshold:0}).observe(document.getElementById("summary"));}
 document.addEventListener("visibilitychange",function(){if(!document.hidden&&gh&&!ghBusy&&!ghDirty&&!dlgMode)ghPull();});
 })();
 </script>
