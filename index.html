@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Israeli Family Budget</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700&family=Rubik:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Layout idea: one narrow ledger column; a summary slip on top, then income, expenses and savings as ruled ledger groups. */
+:root{
+  --bg:#f2f5f4; --surface:#ffffff; --ink:#15262b; --muted:#5b6d71; --line:#d8e0de;
+  --accent:#0b6e75; --accent-ink:#ffffff; --accent-soft:#e2f1f1;
+  --good:#1c7847; --bad:#b3372b; --good-soft:#e3f3ea; --bad-soft:#fbe7e4;
+  --display:"Frank Ruhl Libre","Times New Roman",serif;
+  --body:"Rubik",system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0e1618; --surface:#162124; --ink:#e7efed; --muted:#93a6a9; --line:#293a3d;
+    --accent:#56bcc2; --accent-ink:#04282b; --accent-soft:#173437;
+    --good:#62c990; --bad:#f08e80; --good-soft:#173326; --bad-soft:#3b1f1b;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0e1618; --surface:#162124; --ink:#e7efed; --muted:#93a6a9; --line:#293a3d;
+  --accent:#56bcc2; --accent-ink:#04282b; --accent-soft:#173437;
+  --good:#62c990; --bad:#f08e80; --good-soft:#173326; --bad-soft:#3b1f1b;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.45;-webkit-text-size-adjust:100%}
+.wrap{max-width:780px;margin-inline:auto;padding:20px 16px 64px;display:flex;flex-direction:column;gap:20px}
+.num{direction:ltr;unicode-bidi:isolate;font-variant-numeric:tabular-nums;white-space:nowrap}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+header.top{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}
+h1{font-family:var(--display);font-weight:700;font-size:1.75rem;line-height:1.1;margin:0;text-wrap:balance}
+.sub{color:var(--muted);font-size:.9rem;margin:4px 0 0}
+.lang{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;background:var(--surface)}
+.lang button{border:0;background:none;padding:6px 14px;font-size:.9rem;color:var(--muted)}
+.lang button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px}
+.summary{padding:18px;display:flex;flex-direction:column;gap:16px}
+.sum-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.label{font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.big{font-family:var(--display);font-weight:700;font-size:2.6rem;line-height:1.05}
+.big.neg{color:var(--bad)}
+.pill{display:inline-block;padding:3px 10px;border-radius:999px;font-size:.8rem;font-weight:500;background:var(--accent-soft);color:var(--accent)}
+.pill.good{background:var(--good-soft);color:var(--good)}
+.pill.bad{background:var(--bad-soft);color:var(--bad)}
+.trio{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;border-top:1px solid var(--line);padding-top:14px}
+.trio .v{font-weight:600;font-size:1.05rem}
+.bar{display:flex;height:14px;border-radius:7px;overflow:hidden;background:var(--line)}
+.bar span{display:block;height:100%}
+.legend{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:6px 18px;font-size:.88rem}
+.legend li{display:flex;align-items:center;gap:8px;min-width:0}
+.legend .nm{flex:1;min-width:0;overflow-wrap:anywhere}
+.dot{width:10px;height:10px;border-radius:3px;flex:none}
+.muted{color:var(--muted)}
+.small{font-size:.85rem}
+
+.tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:9px 14px;font-weight:500}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.ghost{background:none}
+.btn.sm{padding:6px 10px;font-size:.88rem}
+.btn.danger{color:var(--bad)}
+.stepper{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:4px 6px 4px 12px}
+[dir="rtl"] .stepper{padding:4px 12px 4px 6px}
+.stepper button{width:32px;height:32px;border-radius:8px;border:1px solid var(--line);background:var(--bg);font-size:1.1rem;line-height:1}
+.stepper b{min-width:1.4em;text-align:center}
+.status{margin-inline-start:auto;font-size:.82rem;color:var(--muted)}
+
+.banner{background:var(--accent-soft);border:1px solid var(--line);border-radius:12px;padding:10px 14px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;font-size:.92rem}
+
+.sec{overflow:hidden}
+.sec-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:16px 18px 6px}
+.sec-head h2{font-family:var(--display);font-weight:700;font-size:1.35rem;margin:0}
+.sec-head .tot{font-weight:600;font-size:1.1rem}
+.note{padding:0 18px 8px;margin:0;color:var(--muted);font-size:.85rem;max-width:65ch}
+.grp-head{display:flex;align-items:center;gap:8px;padding:10px 18px;background:var(--bg);border-block:1px solid var(--line);font-weight:500;font-size:.92rem}
+.grp-head .nm{flex:1;min-width:0;overflow-wrap:anywhere}
+.x{border:0;background:none;color:var(--muted);width:32px;height:32px;border-radius:8px;font-size:1.15rem;line-height:1;flex:none}
+.x:hover{background:var(--bad-soft);color:var(--bad)}
+.row{display:grid;grid-template-columns:1fr auto;grid-template-areas:"name rm" "ctl ctl";gap:6px 8px;padding:10px 18px;border-bottom:1px solid var(--line);align-items:center}
+.row .name{grid-area:name;min-width:0;overflow-wrap:anywhere}
+.row .name input{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:6px 8px}
+.row .ctl{grid-area:ctl;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.row .x{grid-area:rm}
+.amt{display:inline-flex;align-items:center;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding-inline:8px;direction:ltr}
+.amt:focus-within{border-color:var(--accent)}
+.amt span{color:var(--muted)}
+.amt input{width:96px;border:0;background:none;padding:8px 6px;text-align:right;font-variant-numeric:tabular-nums;outline:none;-moz-appearance:textfield}
+.amt input::-webkit-outer-spin-button,.amt input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+select{border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:8px}
+.eq{font-size:.82rem;color:var(--muted)}
+@media (min-width:600px){
+  .row{grid-template-columns:1fr auto auto;grid-template-areas:"name ctl rm"}
+  .row .ctl{flex-wrap:nowrap;justify-content:flex-end}
+}
+.sec-foot{padding:12px 18px}
+.empty{padding:14px 18px;color:var(--muted);margin:0}
+
+dialog{border:1px solid var(--line);border-radius:16px;background:var(--surface);color:var(--ink);padding:0;width:min(640px,calc(100vw - 24px));max-height:calc(100vh - 40px);max-height:calc(100dvh - 40px)}
+dialog::backdrop{background:rgba(8,20,22,.55)}
+.dlg{display:flex;flex-direction:column;max-height:inherit}
+.dlg-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 18px;border-bottom:1px solid var(--line)}
+.dlg-head h3{font-family:var(--display);font-size:1.25rem;margin:0}
+.dlg-body{padding:14px 18px 18px;overflow:auto;display:flex;flex-direction:column;gap:14px}
+.field{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:10px 12px}
+.pick h4,.dlg-body h4{margin:8px 0 6px;font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:500}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--line);background:var(--bg);border-radius:999px;padding:7px 12px;font-size:.9rem;text-align:start}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.custom{border-top:1px solid var(--line);padding-top:12px;display:flex;flex-direction:column;gap:8px}
+.inline{display:flex;gap:8px;flex-wrap:wrap}
+.inline > *{flex:1 1 150px}
+.inline > .btn{flex:0 0 auto}
+.tpl{border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.tpl b{font-weight:600}
+.tpl .acts{display:flex;gap:8px;flex-wrap:wrap}
+label.chk{display:flex;gap:8px;align-items:center;font-size:.9rem}
+@media (prefers-reduced-motion:no-preference){.bar span{transition:width .25s ease}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1 id="title"></h1>
+      <p class="sub" id="subtitle"></p>
+    </div>
+    <div class="lang" role="group" aria-label="Language">
+      <button type="button" id="lang-en" data-act="lang" data-v="en">English</button>
+      <button type="button" id="lang-he" data-act="lang" data-v="he">עברית</button>
+    </div>
+  </header>
+  <section class="card summary" id="summary" aria-live="polite"></section>
+  <div class="tools" id="tools"></div>
+  <div id="banner"></div>
+  <div id="sections" style="display:flex;flex-direction:column;gap:20px"></div>
+</div>
+<dialog id="dlg"><div class="dlg" id="dlg-inner"></div></dialog>
+
+<script>
+(function(){
+"use strict";
+
+/* ---------- text ---------- */
+var L={
+en:{title:"Israeli Family Budget",subtitle:"Monthly income, expenses and savings for parents, in shekels.",
+ left:"Left each month",income:"Income",expense:"Expenses",savings:"Savings",
+ surplus:"Surplus",deficit:"Over budget",balanced:"Balanced",start:"Add your amounts",
+ ofIncome:"of income",kidsCost:"Children's costs",perChild:"per child",aMonth:"a month",
+ templates:"Templates",children:"Children",clear:"Clear all amounts",copy:"Copy summary",copied:"Copied",
+ exampleMsg:"These are example amounts. Replace them with your own.",
+ savedCloud:"Saved to your account",savedLocal:"Saved on this device",notSaved:"Not saved in this view",
+ add_income:"Add income",add_expense:"Add expense",add_savings:"Add savings",
+ empty:"Nothing here yet.",removeItem:"Remove",removeGroup:"Remove group",
+ m:"Monthly",bi:"Every 2 months",y:"Yearly",perMonth:"/ month",
+ savNote:"Net salary already excludes pension and keren hishtalmut deductions made through your employer. Enter only deposits you make yourself.",
+ search:"Search categories",custom:"Custom category",customName:"Name",addBtn:"Add",newGroup:"New group…",newGroupName:"Group name",
+ close:"Close",ready:"Ready-made templates",mine:"Your templates",replace:"Use this",merge:"Add to my list",del:"Delete",
+ saveTpl:"Save current list as a template",tplName:"Template name",withAmounts:"Include amounts",save:"Save template",
+ noMine:"No saved templates yet.",items:"categories",
+ replaceHint:"\"Use this\" replaces your list and keeps amounts for categories that stay."},
+he:{title:"תקציב משפחתי",subtitle:"הכנסות, הוצאות וחיסכון חודשיים להורים, בשקלים.",
+ left:"נשאר בכל חודש",income:"הכנסות",expense:"הוצאות",savings:"חיסכון",
+ surplus:"עודף",deficit:"חריגה מהתקציב",balanced:"מאוזן",start:"הזינו סכומים",
+ ofIncome:"מההכנסה",kidsCost:"הוצאות על הילדים",perChild:"לילד",aMonth:"בחודש",
+ templates:"תבניות",children:"ילדים",clear:"איפוס כל הסכומים",copy:"העתקת סיכום",copied:"הועתק",
+ exampleMsg:"הסכומים כאן הם לדוגמה. החליפו אותם בסכומים שלכם.",
+ savedCloud:"נשמר בחשבון שלך",savedLocal:"נשמר במכשיר הזה",notSaved:"לא נשמר בתצוגה זו",
+ add_income:"הוספת הכנסה",add_expense:"הוספת הוצאה",add_savings:"הוספת חיסכון",
+ empty:"עדיין אין כאן סעיפים.",removeItem:"הסרה",removeGroup:"הסרת קבוצה",
+ m:"חודשי",bi:"דו-חודשי",y:"שנתי",perMonth:"/ חודש",
+ savNote:"שכר הנטו כבר אינו כולל הפרשות לפנסיה ולקרן השתלמות דרך המעסיק. הזינו רק הפקדות שאתם מבצעים בעצמכם.",
+ search:"חיפוש סעיפים",custom:"סעיף מותאם אישית",customName:"שם",addBtn:"הוספה",newGroup:"קבוצה חדשה…",newGroupName:"שם הקבוצה",
+ close:"סגירה",ready:"תבניות מוכנות",mine:"התבניות שלך",replace:"שימוש בתבנית",merge:"הוספה לרשימה שלי",del:"מחיקה",
+ saveTpl:"שמירת הרשימה הנוכחית כתבנית",tplName:"שם התבנית",withAmounts:"כולל סכומים",save:"שמירת תבנית",
+ noMine:"עדיין אין תבניות שמורות.",items:"סעיפים",
+ replaceHint:"\"שימוש בתבנית\" מחליף את הרשימה ושומר סכומים של סעיפים שנשארים."}
+};
+
+/* ---------- groups: id -> [section, en, he] ---------- */
+var G={
+ inc_work:["income","Work","עבודה"],
+ inc_ben:["income","Allowances and benefits","קצבאות והטבות"],
+ inc_other:["income","Other income","הכנסות אחרות"],
+ housing:["expense","Housing","דיור"],
+ kids:["expense","Children","ילדים"],
+ food:["expense","Food and household","מזון ומשק בית"],
+ transport:["expense","Transport","תחבורה"],
+ health:["expense","Health","בריאות"],
+ fin:["expense","Insurance and banking","ביטוחים ובנק"],
+ comms:["expense","Phone and internet","תקשורת"],
+ leisure:["expense","Leisure and holidays","פנאי וחגים"],
+ work:["expense","Self-employment and studies","עצמאים ולימודים"],
+ sav_long:["savings","Long-term and tax-advantaged","חיסכון ארוך טווח"],
+ sav_liq:["savings","Deposits and investments","פיקדונות והשקעות"],
+ sav_goal:["savings","Family goals","יעדים משפחתיים"]
+};
+var G_ORDER=Object.keys(G);
+
+/* ---------- catalog: [key, group, en, he, freq] ---------- */
+var C=[
+["salary1","inc_work","Net salary, parent 1","שכר נטו – הורה 1","m"],
+["salary2","inc_work","Net salary, parent 2","שכר נטו – הורה 2","m"],
+["selfemp","inc_work","Self-employed income (after tax)","הכנסה מעסק עצמאי (נטו)","m"],
+["bonus","inc_work","Bonuses and 13th salary","בונוסים ומשכורת 13","y"],
+["miluim","inc_work","Reserve duty pay (miluim)","תגמולי מילואים","y"],
+["childallow","inc_ben","Child allowance (Bituach Leumi)","קצבת ילדים (ביטוח לאומי)","m"],
+["maternity","inc_ben","Maternity pay","דמי לידה","m"],
+["workgrant","inc_ben","Work grant (negative income tax)","מענק עבודה (מס הכנסה שלילי)","y"],
+["studygrant","inc_ben","Study grant (Bituach Leumi)","מענק לימודים (ביטוח לאומי)","y"],
+["rentaid","inc_ben","Rent assistance","סיוע בשכר דירה","m"],
+["unemployment","inc_ben","Unemployment benefit","דמי אבטלה","m"],
+["incsupport","inc_ben","Income support","הבטחת הכנסה","m"],
+["disability","inc_ben","Disability or other allowance","קצבת נכות או קצבה אחרת","m"],
+["alimony_in","inc_other","Child support received","מזונות (מתקבלים)","m"],
+["rentincome","inc_other","Rental income","הכנסה משכירות","m"],
+["familyhelp","inc_other","Help from family","עזרה מהמשפחה","m"],
+["taxrefund","inc_other","Tax refund","החזר מס","y"],
+["invincome","inc_other","Interest and dividends","ריבית ודיבידנדים","y"],
+
+["mortgage","housing","Mortgage","משכנתא","m"],
+["rent","housing","Rent","שכר דירה","m"],
+["arnona","housing","Arnona (municipal tax)","ארנונה","bi"],
+["vaad","housing","Va'ad bayit (building fee)","ועד בית","m"],
+["electricity","housing","Electricity","חשמל","bi"],
+["water","housing","Water and sewage","מים וביוב","bi"],
+["gas","housing","Gas","גז","bi"],
+["homeins","housing","Home insurance (structure and contents)","ביטוח דירה (מבנה ותכולה)","m"],
+["mortins","housing","Mortgage life insurance","ביטוח חיים למשכנתא","m"],
+["repairs","housing","Repairs and maintenance","תיקונים ותחזוקה","m"],
+
+["daycare","kids","Daycare (maon or mishpachton)","מעון או משפחתון","m"],
+["gan","kids","Private gan","גן פרטי","m"],
+["tzaharon","kids","Tzaharon (after-school care)","צהרון","m"],
+["kaytana","kids","Kaytana (summer camp)","קייטנה","y"],
+["schoolfees","kids","School payments (tashlumei horim)","תשלומי הורים","y"],
+["books","kids","Books and school supplies","ספרים וציוד לבית הספר","y"],
+["chugim","kids","Chugim (after-school activities)","חוגים","m"],
+["tutoring","kids","Private tutoring","שיעורים פרטיים","m"],
+["babysitter","kids","Babysitter","בייביסיטר","m"],
+["diapers","kids","Diapers and formula","חיתולים ותמ\"ל","m"],
+["kidsclothes","kids","Children's clothes and shoes","ביגוד והנעלה לילדים","m"],
+["toys","kids","Toys and games","צעצועים ומשחקים","m"],
+["youth","kids","Youth movement","תנועת נוער","y"],
+["pocket","kids","Pocket money","דמי כיס","m"],
+["kidsphone","kids","Children's phone plans","סלולר לילדים","m"],
+["birthdays","kids","Birthdays and parties","ימי הולדת ומסיבות","y"],
+["alimony_out","kids","Child support paid","מזונות (משולמים)","m"],
+
+["supermarket","food","Supermarket","סופר","m"],
+["market","food","Fruit and vegetables (shuk)","ירקות ופירות (שוק)","m"],
+["eatingout","food","Restaurants and delivery","מסעדות ומשלוחים","m"],
+["pharm","food","Toiletries and cleaning (pharm)","פארם וחומרי ניקוי","m"],
+["cleaner","food","Cleaner","עוזרת בית","m"],
+
+["fuel","transport","Fuel or charging","דלק או טעינה","m"],
+["carmand","transport","Compulsory car insurance (chova)","ביטוח חובה","y"],
+["carcomp","transport","Comprehensive car insurance","ביטוח מקיף","y"],
+["cartest","transport","Licence fee and annual test","אגרת רישוי וטסט","y"],
+["carservice","transport","Car servicing and repairs","טיפולים ותיקונים לרכב","y"],
+["carloan","transport","Car loan or leasing","הלוואת רכב או ליסינג","m"],
+["ravkav","transport","Public transport (Rav-Kav)","תחבורה ציבורית (רב-קו)","m"],
+["parking","transport","Parking and toll roads","חניה וכבישי אגרה","m"],
+
+["shaban","health","Kupat cholim supplementary plan","ביטוח משלים בקופת חולים","m"],
+["privhealth","health","Private health insurance","ביטוח בריאות פרטי","m"],
+["meds","health","Medicines and co-payments","תרופות והשתתפות עצמית","m"],
+["dental","health","Dental care","טיפולי שיניים","y"],
+["glasses","health","Glasses and lenses","משקפיים ועדשות","y"],
+["therapy","health","Therapies (speech, OT, psychology)","טיפולים (קלינאות, ריפוי בעיסוק, פסיכולוג)","m"],
+
+["lifeins","fin","Life insurance","ביטוח חיים","m"],
+["disabins","fin","Loss of work capacity insurance","ביטוח אובדן כושר עבודה","m"],
+["bankfees","fin","Bank and card fees","עמלות בנק וכרטיס אשראי","m"],
+["loans","fin","Loan repayments","החזרי הלוואות","m"],
+["overdraft","fin","Overdraft interest","ריבית על מינוס","m"],
+
+["mobile","comms","Mobile plans","סלולר","m"],
+["internet","comms","Internet","אינטרנט","m"],
+["tv","comms","TV and streaming","טלוויזיה וסטרימינג","m"],
+["subs","comms","Apps and subscriptions","אפליקציות ומינויים","m"],
+
+["vacation","leisure","Vacations","חופשות","y"],
+["chagim","leisure","Chagim and family meals","חגים וארוחות חג","y"],
+["eventgifts","leisure","Gifts for weddings and bar/bat mitzvahs","מתנות לחתונות ובר/בת מצווה","m"],
+["clothes","leisure","Parents' clothes and shoes","ביגוד והנעלה להורים","m"],
+["sport","leisure","Gym and sports","חדר כושר וספורט","m"],
+["hobbies","leisure","Hobbies and outings","תחביבים ובילויים","m"],
+["grooming","leisure","Hair and grooming","מספרה וטיפוח","m"],
+["pets","leisure","Pets","חיות מחמד","m"],
+["donations","leisure","Donations and ma'aser","תרומות ומעשר","m"],
+
+["btl_self","work","Bituach Leumi (self-employed)","ביטוח לאומי (עצמאי)","m"],
+["taxadv","work","Income tax advances","מקדמות מס הכנסה","bi"],
+["accountant","work","Accountant","רואה חשבון","m"],
+["tuition","work","Tuition (parents' studies)","שכר לימוד (לימודי ההורים)","y"],
+
+["hishtalmut","sav_long","Keren hishtalmut (own deposit)","קרן השתלמות (הפקדה עצמית)","m"],
+["pension","sav_long","Pension fund (own deposit)","קרן פנסיה (הפקדה עצמית)","m"],
+["gemel","sav_long","Kupat gemel","קופת גמל","m"],
+["menahalim","sav_long","Managers' insurance","ביטוח מנהלים","m"],
+["gemelinv","sav_liq","Kupat gemel le-hashka'a","קופת גמל להשקעה","m"],
+["policy","sav_liq","Savings policy","פוליסת חיסכון","m"],
+["pakam","sav_liq","Bank deposit (pikadon or pakam)","פיקדון בנקאי או פק\"מ","m"],
+["kaspit","sav_liq","Money-market fund (keren kaspit)","קרן כספית","m"],
+["securities","sav_liq","Stocks, ETFs and mutual funds","מניות, קרנות סל וקרנות נאמנות","m"],
+["bonds","sav_liq","Government bonds and makam","אג\"ח ממשלתי ומק\"מ","m"],
+["childsave","sav_goal","Savings for Every Child, extra deposit","חיסכון לכל ילד – הפקדה נוספת","m"],
+["kidsfund","sav_goal","Children's fund (bar/bat mitzvah, studies)","חיסכון לילדים (בר/בת מצווה, לימודים)","m"],
+["emergency","sav_goal","Emergency fund","קרן חירום","m"],
+["apartment","sav_goal","Down payment for a home","הון עצמי לדירה","m"],
+["earlyrepay","sav_goal","Early mortgage repayment","פירעון מוקדם של המשכנתא","m"],
+["bigbuy","sav_goal","Planned big purchase (car, renovation)","רכישה גדולה מתוכננת (רכב, שיפוץ)","m"]
+];
+var CK={};C.forEach(function(c){CK[c[0]]=c;});
+
+/* ---------- ready-made templates ---------- */
+var READY=[
+{id:"school",en:"Family with school-age children, mortgage",he:"משפחה עם ילדים בגיל בית ספר, משכנתא",
+ keys:"salary1 salary2 childallow mortgage mortins homeins arnona vaad electricity water gas tzaharon kaytana schoolfees books chugim kidsclothes pocket birthdays supermarket market eatingout pharm fuel carmand carcomp cartest carservice ravkav shaban dental meds lifeins bankfees mobile internet tv vacation chagim eventgifts clothes childsave gemelinv emergency"},
+{id:"young",en:"Young family with a baby, renting",he:"משפחה צעירה עם תינוק, בשכירות",
+ keys:"salary1 salary2 childallow maternity rent arnona vaad electricity water gas daycare diapers kidsclothes babysitter supermarket pharm eatingout fuel carmand carcomp cartest carservice shaban meds lifeins mobile internet vacation chagim eventgifts childsave emergency apartment"},
+{id:"single",en:"Single parent",he:"הורה יחיד",
+ keys:"salary1 childallow alimony_in workgrant studygrant rentaid rent arnona vaad electricity water gas daycare tzaharon kaytana schoolfees kidsclothes supermarket pharm ravkav shaban meds bankfees mobile internet chagim childsave emergency"},
+{id:"self",en:"Self-employed parent",he:"הורה עצמאי",
+ keys:"selfemp salary2 childallow mortgage arnona vaad electricity water tzaharon chugim schoolfees supermarket eatingout fuel carmand carcomp cartest carservice shaban btl_self taxadv accountant lifeins disabins mobile internet vacation chagim pension hishtalmut emergency"},
+{id:"basic",en:"Essentials only",he:"הכרחי בלבד",
+ keys:"salary1 salary2 childallow rent arnona electricity water supermarket fuel shaban mobile internet emergency"},
+{id:"all",en:"Everything (all categories)",he:"הכול (כל הסעיפים)",keys:C.map(function(c){return c[0];}).join(" ")}
+];
+var EXAMPLE={salary1:14500,salary2:10500,childallow:350,mortgage:5200,mortins:120,homeins:90,arnona:1100,vaad:250,electricity:900,water:380,gas:120,tzaharon:1100,kaytana:3000,schoolfees:1800,books:900,chugim:600,kidsclothes:350,pocket:100,birthdays:1500,supermarket:3600,market:500,eatingout:700,pharm:350,fuel:800,carmand:1500,carcomp:3200,cartest:1500,carservice:2400,ravkav:150,shaban:220,dental:2000,meds:120,lifeins:180,bankfees:40,mobile:120,internet:110,tv:80,vacation:9000,chagim:3000,eventgifts:400,clothes:400,childsave:120,gemelinv:500,emergency:500};
+
+/* ---------- state ---------- */
+var STORE="il-family-budget-v1";
+var state,cloudRef=null,cloudOn=false,localOk=true,saveTimer=null,saving=false,dirty=false;
+var dlgMode=null,dlgSec=null,dlgFilter="";
+function uid(){return "i"+Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-3);}
+function mkItem(key,amount){var c=CK[key];return {id:uid(),key:key,name:null,group:c[1],freq:c[4],amount:amount||0};}
+function fresh(){
+  var s={v:1,lang:"en",kids:2,example:true,items:[],groups:[],templates:[],updatedAt:0};
+  READY[0].keys.split(" ").forEach(function(k){s.items.push(mkItem(k,EXAMPLE[k]));});
+  return s;
+}
+function normalize(s){
+  if(!s||typeof s!=="object"||!Array.isArray(s.items))return fresh();
+  s.lang=s.lang==="he"?"he":"en";
+  s.kids=Math.max(0,Math.min(15,parseInt(s.kids,10)||0));
+  s.groups=Array.isArray(s.groups)?s.groups:[];
+  s.templates=Array.isArray(s.templates)?s.templates:[];
+  s.items=s.items.filter(function(it){return it&&it.id&&(groupInfo(it.group,s)||false);});
+  s.items.forEach(function(it){it.amount=Math.max(0,Number(it.amount)||0);if(!/^(m|bi|y)$/.test(it.freq))it.freq="m";});
+  s.updatedAt=Number(s.updatedAt)||0;
+  return s;
+}
+function load(){
+  try{var raw=localStorage.getItem(STORE);if(raw)return normalize(JSON.parse(raw));}catch(e){localOk=false;}
+  return fresh();
+}
+function persist(){
+  state.updatedAt=Date.now();
+  try{localStorage.setItem(STORE,JSON.stringify(state));localOk=true;}catch(e){localOk=false;}
+  if(cloudRef){dirty=true;clearTimeout(saveTimer);saveTimer=setTimeout(pushCloud,1500);}
+  drawStatus();
+}
+function pushCloud(){
+  if(!cloudRef||saving||!dirty)return;
+  saving=true;dirty=false;
+  cloudRef.set({json:JSON.stringify(state),updatedAt:state.updatedAt}).then(function(){
+    saving=false;cloudOn=true;drawStatus();if(dirty)pushCloud();
+  },function(){saving=false;cloudOn=false;cloudRef=null;drawStatus();});
+}
+function initCloud(){
+  if(!window.claude||typeof window.claude.use!=="function")return;
+  Promise.all([window.claude.use("db"),window.claude.use("user")]).then(function(r){
+    var db=r[0],user=r[1];if(!db||!user)return;
+    return user.id().then(function(id){
+      if(!id)return;
+      var ref=db.doc("data/users/"+id+"/budget");
+      return ref.get().then(function(snap){
+        cloudRef=ref;cloudOn=true;
+        if(snap.exists){
+          var d=snap.data(),remote=null;
+          try{remote=JSON.parse(d.json);}catch(e){}
+          if(remote&&Number(remote.updatedAt)>state.updatedAt){
+            var lang=state.lang;state=normalize(remote);
+            try{localStorage.setItem(STORE,JSON.stringify(state));}catch(e){}
+            renderAll();
+          }else if(state.updatedAt>0){dirty=true;pushCloud();}
+        }else if(state.updatedAt>0){dirty=true;pushCloud();}
+        drawStatus();
+      });
+    });
+  }).catch(function(){});
+}
+
+/* ---------- helpers ---------- */
+function t(k){return L[state.lang][k]||L.en[k]||k;}
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+function fmt(n){var r=Math.round(Math.abs(n));return (n<0&&r>0?"−":"")+"₪"+r.toLocaleString("en-US");}
+function groupInfo(gid,s){
+  s=s||state;
+  if(G[gid])return {id:gid,sec:G[gid][0],name:s.lang==="he"?G[gid][2]:G[gid][1],custom:false};
+  for(var i=0;i<s.groups.length;i++)if(s.groups[i].id===gid)return {id:gid,sec:s.groups[i].sec,name:s.groups[i].name,custom:true};
+  return null;
+}
+function groupsOf(sec){
+  var out=G_ORDER.filter(function(g){return G[g][0]===sec;});
+  state.groups.forEach(function(g){if(g.sec===sec)out.push(g.id);});
+  return out;
+}
+function allGroupIds(){return G_ORDER.concat(state.groups.map(function(g){return g.id;}));}
+function groupColor(gid){var i=allGroupIds().indexOf(gid);return "hsl("+((i*47+12)%360)+" 52% 52%)";}
+function itemName(it){if(it.key&&CK[it.key])return state.lang==="he"?CK[it.key][3]:CK[it.key][2];return it.name||"";}
+function monthly(it){return it.amount/(it.freq==="y"?12:it.freq==="bi"?2:1);}
+function sumBy(fn){var s=0;state.items.forEach(function(it){if(fn(it))s+=monthly(it);});return s;}
+function secOf(it){var g=groupInfo(it.group);return g?g.sec:null;}
+function totals(){
+  var inc=sumBy(function(it){return secOf(it)==="income";}),
+      exp=sumBy(function(it){return secOf(it)==="expense";}),
+      sav=sumBy(function(it){return secOf(it)==="savings";});
+  return {inc:inc,exp:exp,sav:sav,left:inc-exp-sav};
+}
+
+/* ---------- render ---------- */
+function drawHeader(){
+  document.documentElement.lang=state.lang;
+  document.documentElement.dir=state.lang==="he"?"rtl":"ltr";
+  document.title=L[state.lang].title;
+  document.getElementById("title").textContent=t("title");
+  document.getElementById("subtitle").textContent=t("subtitle");
+  document.getElementById("lang-en").setAttribute("aria-pressed",state.lang==="en");
+  document.getElementById("lang-he").setAttribute("aria-pressed",state.lang==="he");
+}
+function drawSummary(){
+  var T=totals(),any=state.items.some(function(it){return it.amount>0;});
+  var pill=!any?["",t("start")]:T.left>0.5?["good",t("surplus")]:T.left<-0.5?["bad",t("deficit")]:["",t("balanced")];
+  var denom=Math.max(T.inc,T.exp+T.sav,1);
+  var segs="",legend="";
+  function pct(v){return T.inc>0?" <span class=\"muted\">· "+Math.round(v/T.inc*100)+"%</span>":"";}
+  groupsOf("expense").forEach(function(g){
+    var v=sumBy(function(it){return it.group===g;});if(v<=0)return;
+    var col=groupColor(g);
+    segs+="<span style=\"width:"+(v/denom*100).toFixed(2)+"%;background:"+col+"\"></span>";
+    legend+="<li><span class=\"dot\" style=\"background:"+col+"\"></span><span class=\"nm\">"+esc(groupInfo(g).name)+"</span><span class=\"num\">"+fmt(v)+"</span>"+pct(v)+"</li>";
+  });
+  if(T.sav>0){
+    segs+="<span style=\"width:"+(T.sav/denom*100).toFixed(2)+"%;background:var(--accent)\"></span>";
+    legend+="<li><span class=\"dot\" style=\"background:var(--accent)\"></span><span class=\"nm\">"+t("savings")+"</span><span class=\"num\">"+fmt(T.sav)+"</span>"+pct(T.sav)+"</li>";
+  }
+  if(T.left>0){
+    segs+="<span style=\"width:"+(T.left/denom*100).toFixed(2)+"%;background:var(--good)\"></span>";
+    legend+="<li><span class=\"dot\" style=\"background:var(--good)\"></span><span class=\"nm\">"+t("left")+"</span><span class=\"num\">"+fmt(T.left)+"</span>"+pct(T.left)+"</li>";
+  }
+  var kidsCost=sumBy(function(it){return it.group==="kids";});
+  var kidsLine=kidsCost>0?"<p class=\"small muted\" style=\"margin:0\">"+t("kidsCost")+": <span class=\"num\">"+fmt(kidsCost)+"</span> "+t("aMonth")+(state.kids>0?" · <span class=\"num\">"+fmt(kidsCost/state.kids)+"</span> "+t("perChild"):"")+"</p>":"";
+  document.getElementById("summary").innerHTML=
+    "<div class=\"sum-head\"><div><div class=\"label\">"+t("left")+"</div><div class=\"big num"+(T.left<-0.5?" neg":"")+"\">"+fmt(T.left)+"</div></div><span class=\"pill "+pill[0]+"\">"+pill[1]+"</span></div>"+
+    "<div class=\"trio\"><div><div class=\"label\">"+t("income")+"</div><div class=\"v num\">"+fmt(T.inc)+"</div></div><div><div class=\"label\">"+t("expense")+"</div><div class=\"v num\">"+fmt(T.exp)+"</div></div><div><div class=\"label\">"+t("savings")+"</div><div class=\"v num\">"+fmt(T.sav)+"</div></div></div>"+
+    (segs?"<div class=\"bar\" role=\"img\" aria-label=\""+t("expense")+"\">"+segs+"</div><ul class=\"legend\">"+legend+"</ul>":"")+kidsLine;
+}
+function drawTools(){
+  document.getElementById("tools").innerHTML=
+    "<button type=\"button\" class=\"btn primary\" data-act=\"open-tpl\">"+t("templates")+"</button>"+
+    "<span class=\"stepper\"><span>"+t("children")+"</span><button type=\"button\" data-act=\"kids\" data-v=\"-1\" aria-label=\"-\">−</button><b class=\"num\" id=\"kids-n\">"+state.kids+"</b><button type=\"button\" data-act=\"kids\" data-v=\"1\" aria-label=\"+\">+</button></span>"+
+    "<button type=\"button\" class=\"btn\" data-act=\"copy\" id=\"copy-btn\">"+t("copy")+"</button>"+
+    "<button type=\"button\" class=\"btn ghost danger\" data-act=\"clear\">"+t("clear")+"</button>"+
+    "<span class=\"status\" id=\"status\"></span>";
+  drawStatus();
+  document.getElementById("banner").innerHTML=state.example?"<div class=\"banner\"><span>"+t("exampleMsg")+"</span><button type=\"button\" class=\"btn sm\" data-act=\"clear\">"+t("clear")+"</button></div>":"";
+}
+function drawStatus(){
+  var el=document.getElementById("status");if(!el)return;
+  el.textContent=state.updatedAt===0?"":cloudOn&&cloudRef?t("savedCloud"):localOk?t("savedLocal"):t("notSaved");
+}
+function rowHtml(it){
+  var eq=it.freq!=="m"&&it.amount>0?"= "+fmt(monthly(it))+" "+t("perMonth"):"";
+  var name=it.key?esc(itemName(it)):"<input type=\"text\" id=\"nm-"+it.id+"\" data-name=\""+it.id+"\" value=\""+esc(it.name||"")+"\" aria-label=\""+t("customName")+"\">";
+  return "<div class=\"row\"><div class=\"name\">"+name+"</div><div class=\"ctl\">"+
+    "<span class=\"eq num\" data-eq=\""+it.id+"\">"+eq+"</span>"+
+    "<label class=\"amt\"><span>₪</span><input type=\"number\" inputmode=\"decimal\" min=\"0\" step=\"1\" placeholder=\"0\" id=\"amt-"+it.id+"\" data-amt=\""+it.id+"\" value=\""+(it.amount?it.amount:"")+"\" aria-label=\""+esc(itemName(it))+"\"></label>"+
+    "<select id=\"fq-"+it.id+"\" data-freq=\""+it.id+"\" aria-label=\""+t("m")+"\">"+["m","bi","y"].map(function(f){return "<option value=\""+f+"\""+(it.freq===f?" selected":"")+">"+t(f)+"</option>";}).join("")+"</select></div>"+
+    "<button type=\"button\" class=\"x\" data-act=\"rm\" data-id=\""+it.id+"\" aria-label=\""+t("removeItem")+": "+esc(itemName(it))+"\" title=\""+t("removeItem")+"\">×</button></div>";
+}
+function drawSections(){
+  var html="";
+  ["income","expense","savings"].forEach(function(sec){
+    var body="";
+    groupsOf(sec).forEach(function(g){
+      var items=state.items.filter(function(it){return it.group===g;});if(!items.length)return;
+      var sub=0;items.forEach(function(it){sub+=monthly(it);});
+      body+="<div class=\"grp-head\"><span class=\"dot\" style=\"background:"+(sec==="expense"?groupColor(g):"var(--accent)")+"\"></span><span class=\"nm\">"+esc(groupInfo(g).name)+"</span><span class=\"num\" data-sub=\""+g+"\">"+fmt(sub)+"</span><button type=\"button\" class=\"x\" data-act=\"rm-group\" data-id=\""+g+"\" aria-label=\""+t("removeGroup")+": "+esc(groupInfo(g).name)+"\" title=\""+t("removeGroup")+"\">×</button></div>";
+      body+=items.map(rowHtml).join("");
+    });
+    if(!body)body="<p class=\"empty\">"+t("empty")+"</p>";
+    html+="<section class=\"card sec\"><div class=\"sec-head\"><h2>"+t(sec)+"</h2><span class=\"tot num\" data-tot=\""+sec+"\"></span></div>"+
+      (sec==="savings"?"<p class=\"note\">"+t("savNote")+"</p>":"")+body+
+      "<div class=\"sec-foot\"><button type=\"button\" class=\"btn\" data-act=\"open-add\" data-sec=\""+sec+"\">+ "+t("add_"+sec)+"</button></div></section>";
+  });
+  document.getElementById("sections").innerHTML=html;
+  refreshFigures();
+}
+function refreshFigures(){
+  var T=totals(),map={income:T.inc,expense:T.exp,savings:T.sav};
+  document.querySelectorAll("[data-tot]").forEach(function(el){el.textContent=fmt(map[el.getAttribute("data-tot")])+" "+t("perMonth");});
+  document.querySelectorAll("[data-sub]").forEach(function(el){var g=el.getAttribute("data-sub");el.textContent=fmt(sumBy(function(it){return it.group===g;}));});
+  document.querySelectorAll("[data-eq]").forEach(function(el){
+    var it=find(el.getAttribute("data-eq"));
+    el.textContent=it&&it.freq!=="m"&&it.amount>0?"= "+fmt(monthly(it))+" "+t("perMonth"):"";
+  });
+  drawSummary();
+}
+function renderAll(){drawHeader();drawTools();drawSections();if(dlgMode)drawDialog();}
+function find(id){for(var i=0;i<state.items.length;i++)if(state.items[i].id===id)return state.items[i];return null;}
+
+/* ---------- dialogs ---------- */
+var dlg=document.getElementById("dlg"),dlgInner=document.getElementById("dlg-inner");
+function openDialog(mode,sec){dlgMode=mode;dlgSec=sec||null;dlgFilter="";drawDialog();if(!dlg.open){try{dlg.showModal();}catch(e){dlg.setAttribute("open","");}}}
+function closeDialog(){dlgMode=null;if(dlg.open)dlg.close();}
+dlg.addEventListener("close",function(){dlgMode=null;});
+dlg.addEventListener("click",function(e){if(e.target===dlg)closeDialog();});
+function head(title){return "<div class=\"dlg-head\"><h3>"+title+"</h3><button type=\"button\" class=\"x\" data-act=\"close\" aria-label=\""+t("close")+"\">×</button></div>";}
+function pickHtml(){
+  var q=dlgFilter.trim().toLowerCase(),out="";
+  groupsOf(dlgSec).forEach(function(g){
+    var chips=C.filter(function(c){return c[1]===g&&(!q||c[2].toLowerCase().indexOf(q)>-1||c[3].indexOf(q)>-1);}).map(function(c){
+      var on=state.items.some(function(it){return it.key===c[0];});
+      return "<button type=\"button\" class=\"chip\" data-act=\"toggle\" data-key=\""+c[0]+"\" aria-pressed=\""+on+"\">"+esc(state.lang==="he"?c[3]:c[2])+"</button>";
+    }).join("");
+    if(chips)out+="<h4>"+esc(groupInfo(g).name)+"</h4><div class=\"chips\">"+chips+"</div>";
+  });
+  return out||"<p class=\"muted\">"+t("empty")+"</p>";
+}
+function drawDialog(){
+  if(dlgMode==="add"){
+    var opts=groupsOf(dlgSec).map(function(g){return "<option value=\""+g+"\">"+esc(groupInfo(g).name)+"</option>";}).join("")+"<option value=\"__new\">"+t("newGroup")+"</option>";
+    dlgInner.innerHTML=head(t("add_"+dlgSec))+"<div class=\"dlg-body\">"+
+      "<input type=\"search\" class=\"field\" id=\"pick-q\" placeholder=\""+t("search")+"\" aria-label=\""+t("search")+"\">"+
+      "<div class=\"pick\" id=\"pick\">"+pickHtml()+"</div>"+
+      "<form class=\"custom\" id=\"custom-form\"><h4 style=\"margin:0\">"+t("custom")+"</h4><div class=\"inline\">"+
+      "<input type=\"text\" class=\"field\" id=\"c-name\" placeholder=\""+t("customName")+"\" aria-label=\""+t("customName")+"\" maxlength=\"60\" required>"+
+      "<select id=\"c-group\" aria-label=\""+t("newGroupName")+"\">"+opts+"</select></div>"+
+      "<div class=\"inline\"><input type=\"text\" class=\"field\" id=\"c-newgroup\" placeholder=\""+t("newGroupName")+"\" aria-label=\""+t("newGroupName")+"\" maxlength=\"40\" hidden>"+
+      "<button type=\"submit\" class=\"btn primary\">"+t("addBtn")+"</button></div></form></div>";
+  }else if(dlgMode==="tpl"){
+    var ready=READY.map(function(r){
+      return "<div class=\"tpl\"><div><b>"+esc(state.lang==="he"?r.he:r.en)+"</b> <span class=\"muted small\">· "+r.keys.split(" ").length+" "+t("items")+"</span></div><div class=\"acts\"><button type=\"button\" class=\"btn sm primary\" data-act=\"tpl-use\" data-kind=\"ready\" data-id=\""+r.id+"\">"+t("replace")+"</button><button type=\"button\" class=\"btn sm\" data-act=\"tpl-merge\" data-kind=\"ready\" data-id=\""+r.id+"\">"+t("merge")+"</button></div></div>";
+    }).join("");
+    var mine=state.templates.length?state.templates.map(function(m){
+      return "<div class=\"tpl\"><div><b>"+esc(m.name)+"</b> <span class=\"muted small\">· "+m.items.length+" "+t("items")+"</span></div><div class=\"acts\"><button type=\"button\" class=\"btn sm primary\" data-act=\"tpl-use\" data-kind=\"mine\" data-id=\""+m.id+"\">"+t("replace")+"</button><button type=\"button\" class=\"btn sm\" data-act=\"tpl-merge\" data-kind=\"mine\" data-id=\""+m.id+"\">"+t("merge")+"</button><button type=\"button\" class=\"btn sm ghost danger\" data-act=\"tpl-del\" data-id=\""+m.id+"\">"+t("del")+"</button></div></div>";
+    }).join(""):"<p class=\"muted\" style=\"margin:0\">"+t("noMine")+"</p>";
+    dlgInner.innerHTML=head(t("templates"))+"<div class=\"dlg-body\">"+
+      "<h4 style=\"margin:0\">"+t("mine")+"</h4>"+mine+
+      "<form class=\"custom\" id=\"tpl-form\" style=\"border-top:0;padding-top:0\"><div class=\"inline\"><input type=\"text\" class=\"field\" id=\"tpl-name\" placeholder=\""+t("tplName")+"\" aria-label=\""+t("tplName")+"\" maxlength=\"50\" required><button type=\"submit\" class=\"btn\">"+t("save")+"</button></div>"+
+      "<label class=\"chk\"><input type=\"checkbox\" id=\"tpl-amounts\"> "+t("withAmounts")+"</label><span class=\"muted small\">"+t("saveTpl")+"</span></form>"+
+      "<h4 style=\"margin:0\">"+t("ready")+"</h4><p class=\"muted small\" style=\"margin:0\">"+t("replaceHint")+"</p>"+ready+"</div>";
+  }
+}
+
+/* ---------- templates ---------- */
+function tplItems(kind,id){
+  if(kind==="ready"){
+    var r=READY.filter(function(x){return x.id===id;})[0];if(!r)return null;
+    return {groups:[],items:r.keys.split(" ").map(function(k){return {key:k,name:null,group:CK[k][1],freq:CK[k][4]};})};
+  }
+  return state.templates.filter(function(x){return x.id===id;})[0]||null;
+}
+function same(a,b){return a.key?a.key===b.key:(!b.key&&a.name===b.name&&a.group===b.group);}
+function applyTpl(tpl,mode){
+  (tpl.groups||[]).forEach(function(g){if(!groupInfo(g.id))state.groups.push({id:g.id,name:g.name,sec:g.sec});});
+  var wasExample=state.example,old=state.items,next=mode==="replace"?[]:old.slice();
+  tpl.items.forEach(function(ti){
+    if(ti.key&&!CK[ti.key])return;
+    if(!groupInfo(ti.group))return;
+    var ex=old.filter(function(o){return same(ti,o);})[0];
+    if(mode==="merge"){if(ex)return;}
+    var amount=typeof ti.amount==="number"?ti.amount:(ex&&!(wasExample&&mode==="replace")?ex.amount:0);
+    next.push({id:ex?ex.id:uid(),key:ti.key||null,name:ti.key?null:ti.name,group:ti.group,freq:ex&&typeof ti.amount!=="number"?ex.freq:ti.freq,amount:amount});
+  });
+  state.items=next;
+  if(mode==="replace")state.example=false;
+  pruneGroups();
+}
+function pruneGroups(){
+  var inTpl={};state.templates.forEach(function(m){(m.groups||[]).forEach(function(g){inTpl[g.id]=1;});});
+  state.groups=state.groups.filter(function(g){return inTpl[g.id]||state.items.some(function(it){return it.group===g.id;});});
+}
+function summaryText(){
+  var T=totals(),lines=[t("title"),""];
+  ["income","expense","savings"].forEach(function(sec){
+    lines.push(t(sec)+": "+fmt(sec==="income"?T.inc:sec==="expense"?T.exp:T.sav)+" "+t("perMonth"));
+    state.items.forEach(function(it){if(secOf(it)===sec&&it.amount>0)lines.push("  "+itemName(it)+": "+fmt(monthly(it)));});
+    lines.push("");
+  });
+  lines.push(t("left")+": "+fmt(T.left));
+  return lines.join("\n");
+}
+
+/* ---------- events ---------- */
+document.addEventListener("click",function(e){
+  var b=e.target.closest("[data-act]");if(!b)return;
+  var act=b.getAttribute("data-act"),id=b.getAttribute("data-id");
+  if(act==="lang"){state.lang=b.getAttribute("data-v");persist();renderAll();}
+  else if(act==="kids"){state.kids=Math.max(0,Math.min(15,state.kids+Number(b.getAttribute("data-v"))));document.getElementById("kids-n").textContent=state.kids;persist();drawSummary();}
+  else if(act==="clear"){state.items.forEach(function(it){it.amount=0;});state.example=false;persist();renderAll();}
+  else if(act==="copy"){
+    var txt=summaryText();
+    try{navigator.clipboard.writeText(txt).then(function(){b.textContent=t("copied");setTimeout(function(){b.textContent=t("copy");},1600);},function(){});}catch(err){}
+  }
+  else if(act==="rm"){state.items=state.items.filter(function(it){return it.id!==id;});pruneGroups();persist();drawSections();}
+  else if(act==="rm-group"){state.items=state.items.filter(function(it){return it.group!==id;});pruneGroups();persist();drawSections();}
+  else if(act==="open-add"){openDialog("add",b.getAttribute("data-sec"));}
+  else if(act==="open-tpl"){openDialog("tpl");}
+  else if(act==="close"){closeDialog();}
+  else if(act==="toggle"){
+    var key=b.getAttribute("data-key"),has=state.items.some(function(it){return it.key===key;});
+    if(has)state.items=state.items.filter(function(it){return it.key!==key;});else state.items.push(mkItem(key,0));
+    b.setAttribute("aria-pressed",String(!has));persist();drawSections();
+  }
+  else if(act==="tpl-use"||act==="tpl-merge"){
+    var tpl=tplItems(b.getAttribute("data-kind"),id);if(!tpl)return;
+    applyTpl(tpl,act==="tpl-use"?"replace":"merge");persist();closeDialog();renderAll();
+  }
+  else if(act==="tpl-del"){state.templates=state.templates.filter(function(m){return m.id!==id;});pruneGroups();persist();drawDialog();}
+});
+document.addEventListener("input",function(e){
+  var el=e.target;
+  if(el.hasAttribute("data-amt")){var it=find(el.getAttribute("data-amt"));if(!it)return;var v=parseFloat(el.value);it.amount=isFinite(v)&&v>0?v:0;persist();refreshFigures();}
+  else if(el.hasAttribute("data-name")){var it2=find(el.getAttribute("data-name"));if(it2){it2.name=el.value.slice(0,60);persist();}}
+  else if(el.id==="pick-q"){dlgFilter=el.value;document.getElementById("pick").innerHTML=pickHtml();}
+});
+document.addEventListener("change",function(e){
+  var el=e.target;
+  if(el.hasAttribute("data-freq")){var it=find(el.getAttribute("data-freq"));if(it){it.freq=el.value;persist();refreshFigures();}}
+  else if(el.id==="c-group"){var ng=document.getElementById("c-newgroup");ng.hidden=el.value!=="__new";ng.required=el.value==="__new";if(!ng.hidden)ng.focus();}
+});
+document.addEventListener("submit",function(e){
+  e.preventDefault();
+  if(e.target.id==="custom-form"){
+    var name=document.getElementById("c-name").value.trim(),g=document.getElementById("c-group").value;
+    if(!name)return;
+    if(g==="__new"){
+      var gn=document.getElementById("c-newgroup").value.trim();if(!gn)return;
+      g="g"+uid();state.groups.push({id:g,name:gn,sec:dlgSec});
+    }
+    state.items.push({id:uid(),key:null,name:name,group:g,freq:"m",amount:0});
+    persist();drawSections();drawDialog();
+  }else if(e.target.id==="tpl-form"){
+    var tn=document.getElementById("tpl-name").value.trim();if(!tn)return;
+    var withAmt=document.getElementById("tpl-amounts").checked,used={};
+    var items=state.items.map(function(it){used[it.group]=1;var o={key:it.key||null,name:it.key?null:it.name,group:it.group,freq:it.freq};if(withAmt)o.amount=it.amount;return o;});
+    state.templates.push({id:"t"+uid(),name:tn,items:items,groups:state.groups.filter(function(g){return used[g.id];}).map(function(g){return {id:g.id,name:g.name,sec:g.sec};})});
+    persist();drawDialog();
+  }
+});
+
+/* ---------- start ---------- */
+state=load();
+renderAll();
+initCloud();
+})();
+</script>
+</body>
+</html>
