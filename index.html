@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&display=swap" rel="stylesheet">
+<script>try{var th=localStorage.getItem("il-family-budget-theme");if(th==="light"||th==="dark")document.documentElement.setAttribute("data-theme",th);}catch(e){}</script>
 <style>
 /* Layout idea: one calm column for the phone. A dark result card on top, then income, expenses and savings as colour-coded cards with foldable groups. */
 :root{
@@ -52,7 +53,8 @@ button{cursor:pointer}
 header.top{display:flex;align-items:flex-end;justify-content:space-between;gap:8px 16px;flex-wrap:wrap}
 h1{font-weight:800;font-size:1.7rem;line-height:1.15;margin:0;letter-spacing:-.01em}
 .sub{color:var(--muted);margin:2px 0 0}
-.status{font-size:.82rem;color:var(--muted)}
+.status{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 12px;font-size:.82rem;color:var(--muted);text-align:start;max-width:100%}
+.status span{overflow-wrap:anywhere}
 
 .stick{position:fixed;top:0;inset-inline:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);padding:10px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;transform:translateY(-110%);font-weight:500}
 .stick.show{transform:none}
@@ -172,7 +174,7 @@ label.chk{display:flex;gap:8px;align-items:center}
       <h1 id="title"></h1>
       <p class="sub" id="subtitle"></p>
     </div>
-    <span class="status" id="status" role="status"></span>
+    <button type="button" class="status" id="status" data-act="open-gh"></button>
   </header>
   <section class="hero" id="summary" aria-live="polite"></section>
   <div class="tools" id="tools"></div>
@@ -251,7 +253,9 @@ Object.assign(L.he,{
  add_income:"הוספת הכנסה",add_expense:"הוספת הוצאה",add_savings:"הוספת חיסכון",
  replace:"החלפת הרשימה בתבנית",merge:"הוספה לרשימה הקיימת",
  replaceHint:"החלפה שומרת את הסכומים של סעיפים שקיימים גם בתבנית.",
- savedLocal:"נשמר במכשיר הזה בלבד"
+ savedLocal:"נשמר במכשיר הזה בלבד",
+ refresh:"רענון",themeLight:"תצוגה בהירה",themeDark:"תצוגה כהה",
+ linked:"מחובר לקובץ",notLinked:"לא מחובר לקובץ משותף"
 });
 
 /* ---------- groups: id -> [section, en, he] ---------- */
@@ -617,6 +621,8 @@ function drawTools(){
     "<button type=\"button\" class=\"btn primary\" data-act=\"open-tpl\">"+t("templates")+"</button>"+
     "<span class=\"stepper\"><span>"+t("children")+"</span><button type=\"button\" data-act=\"kids\" data-v=\"-1\" aria-label=\""+t("fewer")+"\">−</button><b class=\"num\" id=\"kids-n\">"+state.kids+"</b><button type=\"button\" data-act=\"kids\" data-v=\"1\" aria-label=\""+t("morek")+"\">+</button></span>"+
     "<div class=\"more\">"+
+    "<button type=\"button\" class=\"btn sm\" data-act=\"refresh\">\u21BB "+t("refresh")+"</button>"+
+    "<button type=\"button\" class=\"btn sm\" data-act=\"theme\">"+(curTheme()==="dark"?t("themeLight"):t("themeDark"))+"</button>"+
     "<button type=\"button\" class=\"btn sm\" data-act=\"tgl-all\">"+(allCollapsed()?t("expandAll"):t("collapseAll"))+"</button>"+
     "<button type=\"button\" class=\"btn sm\" data-act=\"open-gh\">"+t("ghBtn")+"</button>"+
     "<button type=\"button\" class=\"btn sm\" data-act=\"copy\" id=\"copy-btn\">"+t("copy")+"</button>"+
@@ -624,10 +630,22 @@ function drawTools(){
   drawStatus();
   document.getElementById("banner").innerHTML=state.example?"<div class=\"banner\"><span>"+t("exampleMsg")+"</span><button type=\"button\" class=\"btn sm\" data-act=\"clear\">"+t("clear")+"</button></div>":"";
 }
+function curTheme(){
+  var a=document.documentElement.getAttribute("data-theme");if(a==="light"||a==="dark")return a;
+  return window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";
+}
 function drawStatus(){
   var el=document.getElementById("status");if(!el)return;
-  if(gh&&ghState){el.textContent=t(ghState);return;}
-  el.textContent=state.updatedAt===0?"":cloudOn&&cloudRef?t("savedCloud"):localOk?t("savedLocal"):t("notSaved");
+  var col="var(--muted)",txt;
+  if(gh){
+    var err=/^ghErr/.test(ghState);
+    col=err?"var(--bad)":ghState==="ghSynced"?"var(--good)":"var(--accent)";
+    txt=t("linked")+" <span class=\"num\" style=\"white-space:normal\">"+esc(gh.repo+"/"+gh.path)+"</span>"+(ghState?" · "+t(ghState):"");
+  }else{
+    var local=state.updatedAt===0?"":cloudOn&&cloudRef?t("savedCloud"):localOk?t("savedLocal"):t("notSaved");
+    txt=t("notLinked")+(local?" · "+local:"");
+  }
+  el.innerHTML="<i class=\"dot\" style=\"background:"+col+"\"></i><span>"+txt+"</span>";
 }
 function eqHtml(it){return it&&it.freq!=="m"&&it.amount>0?"= <span class=\"num\">"+fmt(monthly(it))+"</span> "+t("perMonth"):"";}
 function rowHtml(it){
@@ -786,6 +804,13 @@ document.addEventListener("click",function(e){
   else if(act==="tgl-all"){var all=allCollapsed();shownGroups().forEach(function(g){collapsed[g]=!all;});saveUi();drawTools();drawSections();}
   else if(act==="open-tpl"){openDialog("tpl");}
   else if(act==="open-gh"){openDialog("gh");}
+  else if(act==="refresh"){try{location.reload();}catch(err){if(gh)ghPull();}}
+  else if(act==="theme"){
+    var nt=curTheme()==="dark"?"light":"dark";
+    document.documentElement.setAttribute("data-theme",nt);
+    try{localStorage.setItem("il-family-budget-theme",nt);}catch(err){}
+    drawTools();
+  }
   else if(act==="gh-off"){ghDisconnect();drawDialog();}
   else if(act==="close"){closeDialog();}
   else if(act==="toggle"){
