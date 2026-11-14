@@ -123,6 +123,8 @@ dialog::backdrop{background:rgba(8,20,22,.55)}
 .custom{border-top:1px solid var(--line);padding-top:12px;display:flex;flex-direction:column;gap:8px}
 .inline{display:flex;gap:8px;flex-wrap:wrap}
 .inline > *{flex:1 1 150px}
+label.small{display:flex;flex-direction:column;gap:4px;color:var(--muted)}
+label.small .field{color:var(--ink)}
 .inline > .btn{flex:0 0 auto}
 .tpl{border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px}
 .tpl b{font-weight:600}
@@ -171,7 +173,16 @@ en:{title:"Israeli Family Budget",subtitle:"Monthly income, expenses and savings
  close:"Close",ready:"Ready-made templates",mine:"Your templates",replace:"Use this",merge:"Add to my list",del:"Delete",
  saveTpl:"Save current list as a template",tplName:"Template name",withAmounts:"Include amounts",save:"Save template",
  noMine:"No saved templates yet.",items:"categories",
- replaceHint:"\"Use this\" replaces your list and keeps amounts for categories that stay."},
+ replaceHint:"\"Use this\" replaces your list and keeps amounts for categories that stay.",
+ ghBtn:"GitHub sync",ghTitle:"Save to GitHub",
+ ghIntro:"The budget is saved to a JSON file in your GitHub repository, so every device and person connected to it sees the same data. The access token is kept in this browser only and is never written to the file.",
+ ghOwner:"Owner",ghRepo:"Repository",ghBranch:"Branch",ghPath:"File path",ghToken:"Access token",
+ ghTokenHint:"On GitHub, create a fine-grained personal access token limited to this repository, with the Contents permission set to Read and write.",
+ ghConnect:"Connect",ghDisconnect:"Disconnect",
+ ghSynced:"Saved to GitHub",ghSaving:"Saving to GitHub…",ghLoading:"Loading from GitHub…",
+ ghErrAuth:"GitHub rejected the token. Check the token and its permissions.",
+ ghErrNotFound:"Repository not found, or the token has no access to it.",
+ ghErrNet:"Could not reach GitHub. Changes are kept on this device."},
 he:{title:"תקציב משפחתי",subtitle:"הכנסות, הוצאות וחיסכון חודשיים להורים, בשקלים.",
  left:"נשאר בכל חודש",income:"הכנסות",expense:"הוצאות",savings:"חיסכון",
  surplus:"עודף",deficit:"חריגה מהתקציב",balanced:"מאוזן",start:"הזינו סכומים",
@@ -187,7 +198,16 @@ he:{title:"תקציב משפחתי",subtitle:"הכנסות, הוצאות וחי�
  close:"סגירה",ready:"תבניות מוכנות",mine:"התבניות שלך",replace:"שימוש בתבנית",merge:"הוספה לרשימה שלי",del:"מחיקה",
  saveTpl:"שמירת הרשימה הנוכחית כתבנית",tplName:"שם התבנית",withAmounts:"כולל סכומים",save:"שמירת תבנית",
  noMine:"עדיין אין תבניות שמורות.",items:"סעיפים",
- replaceHint:"\"שימוש בתבנית\" מחליף את הרשימה ושומר סכומים של סעיפים שנשארים."}
+ replaceHint:"\"שימוש בתבנית\" מחליף את הרשימה ושומר סכומים של סעיפים שנשארים.",
+ ghBtn:"סנכרון GitHub",ghTitle:"שמירה ב-GitHub",
+ ghIntro:"התקציב נשמר בקובץ JSON במאגר ה-GitHub שלכם, כך שכל מכשיר וכל אדם שמחובר אליו רואה את אותם נתונים. אסימון הגישה נשמר רק בדפדפן הזה ואינו נכתב לקובץ.",
+ ghOwner:"בעלים",ghRepo:"מאגר",ghBranch:"ענף",ghPath:"נתיב הקובץ",ghToken:"אסימון גישה",
+ ghTokenHint:"ב-GitHub, צרו fine-grained personal access token שמוגבל למאגר הזה בלבד, עם הרשאת Contents במצב Read and write.",
+ ghConnect:"התחברות",ghDisconnect:"ניתוק",
+ ghSynced:"נשמר ב-GitHub",ghSaving:"שומר ב-GitHub…",ghLoading:"טוען מ-GitHub…",
+ ghErrAuth:"GitHub דחה את האסימון. בדקו את האסימון ואת ההרשאות שלו.",
+ ghErrNotFound:"המאגר לא נמצא, או שלאסימון אין גישה אליו.",
+ ghErrNet:"לא ניתן להגיע ל-GitHub. השינויים נשמרים במכשיר הזה."}
 };
 
 /* ---------- groups: id -> [section, en, he] ---------- */
@@ -373,6 +393,7 @@ function persist(){
   state.updatedAt=Date.now();
   try{localStorage.setItem(STORE,JSON.stringify(state));localOk=true;}catch(e){localOk=false;}
   if(cloudRef){dirty=true;clearTimeout(saveTimer);saveTimer=setTimeout(pushCloud,1500);}
+  if(gh){ghDirty=true;clearTimeout(ghTimer);ghTimer=setTimeout(ghPush,3000);}
   drawStatus();
 }
 function pushCloud(){
@@ -404,6 +425,80 @@ function initCloud(){
       });
     });
   }).catch(function(){});
+}
+
+/* ---------- GitHub JSON file sync ---------- */
+var GH_STORE="il-family-budget-gh",gh=null,ghSha=null,ghState="",ghTimer=null,ghBusy=false,ghDirty=false;
+function ghLoadCfg(){try{var r=localStorage.getItem(GH_STORE);if(r){var c=JSON.parse(r);if(c&&c.token&&c.owner&&c.repo&&c.path)return c;}}catch(e){}return null;}
+function ghDefaults(){
+  var o="DannyGelman95",r="family-budget",m=/^([^.]+)\.github\.io$/i.exec(location.hostname||"");
+  if(m){o=m[1];var seg=location.pathname.split("/").filter(Boolean)[0];if(seg&&!/\.html?$/i.test(seg))r=seg;}
+  return {owner:o,repo:r,branch:"main",path:"data/budget.json",token:""};
+}
+function ghRepoUrl(){return "https://api.github.com/repos/"+encodeURIComponent(gh.owner)+"/"+encodeURIComponent(gh.repo);}
+function ghUrl(){return ghRepoUrl()+"/contents/"+gh.path.split("/").filter(Boolean).map(encodeURIComponent).join("/");}
+function ghHeaders(){return {"Accept":"application/vnd.github+json","Authorization":"Bearer "+gh.token,"X-GitHub-Api-Version":"2022-11-28"};}
+function b64enc(str){var b=new TextEncoder().encode(str),s="";for(var i=0;i<b.length;i+=0x8000)s+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000));return btoa(s);}
+function b64dec(b){var s=atob(String(b).replace(/\s/g,"")),a=new Uint8Array(s.length);for(var i=0;i<s.length;i++)a[i]=s.charCodeAt(i);return new TextDecoder().decode(a);}
+function ghSet(k){ghState=k;drawStatus();var e=document.getElementById("gh-msg");if(e)e.textContent=k?t(k):"";}
+function ghFail(code){ghSet(code===401||code===403?"ghErrAuth":code===404?"ghErrNotFound":"ghErrNet");}
+function adopt(remote){
+  var lang=state.lang;state=normalize(remote);state.lang=lang;
+  try{localStorage.setItem(STORE,JSON.stringify(state));}catch(e){}
+  drawHeader();drawTools();drawSections();
+}
+function ghGet(){
+  return fetch(ghUrl()+"?ref="+encodeURIComponent(gh.branch),{headers:ghHeaders(),cache:"no-store"}).then(function(res){
+    if(res.status===404)return null;
+    if(!res.ok)throw res.status;
+    return res.json();
+  });
+}
+function ghPull(){
+  if(!gh||ghBusy)return;
+  ghBusy=true;ghSet("ghLoading");
+  ghGet().then(function(j){
+    ghBusy=false;
+    var remote=null;
+    if(j){ghSha=j.sha;try{remote=JSON.parse(b64dec(j.content));}catch(e){}}else ghSha=null;
+    var rAt=remote?Number(remote.updatedAt)||0:-1;
+    if(remote&&rAt>state.updatedAt){adopt(remote);ghSet("ghSynced");if(ghDirty)ghPush();}
+    else if(!remote||state.updatedAt>rAt){if(!state.updatedAt)state.updatedAt=1;ghDirty=true;ghPush();}
+    else{ghSet("ghSynced");if(ghDirty)ghPush();}
+  }).catch(function(err){ghBusy=false;ghFail(typeof err==="number"?err:0);});
+}
+function ghPush(retried){
+  if(!gh||ghBusy||!ghDirty)return;
+  ghBusy=true;ghDirty=false;ghSet("ghSaving");
+  var body={message:"Update budget data",content:b64enc(JSON.stringify(state,null,2)+"\n"),branch:gh.branch};
+  if(ghSha)body.sha=ghSha;
+  fetch(ghUrl(),{method:"PUT",headers:ghHeaders(),body:JSON.stringify(body)}).then(function(res){
+    if((res.status===409||res.status===422)&&retried!==true){
+      return ghGet().then(function(j){ghSha=j?j.sha:null;ghBusy=false;ghDirty=true;ghPush(true);});
+    }
+    if(!res.ok)throw res.status;
+    return res.json().then(function(j){
+      ghSha=j&&j.content?j.content.sha:ghSha;ghBusy=false;ghSet("ghSynced");
+      if(ghDirty)ghPush();
+    });
+  }).catch(function(err){ghBusy=false;ghDirty=true;ghFail(typeof err==="number"?err:0);});
+}
+function ghConnect(cfg){
+  gh=cfg;ghSha=null;ghDirty=false;
+  try{localStorage.setItem(GH_STORE,JSON.stringify(cfg));}catch(e){}
+  ghSet("ghLoading");
+  fetch(ghRepoUrl(),{headers:ghHeaders(),cache:"no-store"}).then(function(res){
+    if(!res.ok)throw res.status;
+    return res.json();
+  }).then(function(j){
+    if(j&&j.permissions&&j.permissions.push===false)throw 403;
+    ghPull();
+  }).catch(function(err){ghFail(typeof err==="number"?err:0);});
+}
+function ghDisconnect(){
+  gh=null;ghSha=null;ghDirty=false;ghState="";clearTimeout(ghTimer);
+  try{localStorage.removeItem(GH_STORE);}catch(e){}
+  drawStatus();
 }
 
 /* ---------- helpers ---------- */
@@ -475,6 +570,7 @@ function drawTools(){
   document.getElementById("tools").innerHTML=
     "<button type=\"button\" class=\"btn primary\" data-act=\"open-tpl\">"+t("templates")+"</button>"+
     "<span class=\"stepper\"><span>"+t("children")+"</span><button type=\"button\" data-act=\"kids\" data-v=\"-1\" aria-label=\"-\">−</button><b class=\"num\" id=\"kids-n\">"+state.kids+"</b><button type=\"button\" data-act=\"kids\" data-v=\"1\" aria-label=\"+\">+</button></span>"+
+    "<button type=\"button\" class=\"btn\" data-act=\"open-gh\">"+t("ghBtn")+"</button>"+
     "<button type=\"button\" class=\"btn\" data-act=\"copy\" id=\"copy-btn\">"+t("copy")+"</button>"+
     "<button type=\"button\" class=\"btn ghost danger\" data-act=\"clear\">"+t("clear")+"</button>"+
     "<span class=\"status\" id=\"status\"></span>";
@@ -483,6 +579,7 @@ function drawTools(){
 }
 function drawStatus(){
   var el=document.getElementById("status");if(!el)return;
+  if(gh&&ghState){el.textContent=t(ghState);return;}
   el.textContent=state.updatedAt===0?"":cloudOn&&cloudRef?t("savedCloud"):localOk?t("savedLocal"):t("notSaved");
 }
 function rowHtml(it){
@@ -554,6 +651,18 @@ function drawDialog(){
       "<select id=\"c-group\" aria-label=\""+t("newGroupName")+"\">"+opts+"</select></div>"+
       "<div class=\"inline\"><input type=\"text\" class=\"field\" id=\"c-newgroup\" placeholder=\""+t("newGroupName")+"\" aria-label=\""+t("newGroupName")+"\" maxlength=\"40\" hidden>"+
       "<button type=\"submit\" class=\"btn primary\">"+t("addBtn")+"</button></div></form></div>";
+  }else if(dlgMode==="gh"){
+    var c=gh||ghDefaults();
+    function f(id,key,val,type){return "<label class=\"small\" for=\""+id+"\">"+t(key)+"<input type=\""+(type||"text")+"\" class=\"field\" id=\""+id+"\" value=\""+esc(val)+"\" autocomplete=\"off\" autocapitalize=\"off\" spellcheck=\"false\" dir=\"ltr\" required></label>";}
+    dlgInner.innerHTML=head(t("ghTitle"))+"<div class=\"dlg-body\"><p class=\"small\" style=\"margin:0\">"+t("ghIntro")+"</p>"+
+      "<form id=\"gh-form\" style=\"display:flex;flex-direction:column;gap:10px\">"+
+      "<div class=\"inline\">"+f("gh-owner","ghOwner",c.owner)+f("gh-repo","ghRepo",c.repo)+"</div>"+
+      "<div class=\"inline\">"+f("gh-branch","ghBranch",c.branch)+f("gh-path","ghPath",c.path)+"</div>"+
+      f("gh-token","ghToken",c.token,"password")+
+      "<p class=\"small muted\" style=\"margin:0\">"+t("ghTokenHint")+"</p>"+
+      "<div class=\"tpl acts\" style=\"border:0;padding:0;flex-direction:row\"><button type=\"submit\" class=\"btn primary\">"+t("ghConnect")+"</button>"+
+      (gh?"<button type=\"button\" class=\"btn ghost danger\" data-act=\"gh-off\">"+t("ghDisconnect")+"</button>":"")+"</div>"+
+      "<p id=\"gh-msg\" role=\"status\" style=\"margin:0;font-weight:500\">"+(gh&&ghState?t(ghState):"")+"</p></form></div>";
   }else if(dlgMode==="tpl"){
     var ready=READY.map(function(r){
       return "<div class=\"tpl\"><div><b>"+esc(state.lang==="he"?r.he:r.en)+"</b> <span class=\"muted small\">· "+r.keys.split(" ").length+" "+t("items")+"</span></div><div class=\"acts\"><button type=\"button\" class=\"btn sm primary\" data-act=\"tpl-use\" data-kind=\"ready\" data-id=\""+r.id+"\">"+t("replace")+"</button><button type=\"button\" class=\"btn sm\" data-act=\"tpl-merge\" data-kind=\"ready\" data-id=\""+r.id+"\">"+t("merge")+"</button></div></div>";
@@ -623,6 +732,8 @@ document.addEventListener("click",function(e){
   else if(act==="rm-group"){state.items=state.items.filter(function(it){return it.group!==id;});pruneGroups();persist();drawSections();}
   else if(act==="open-add"){openDialog("add",b.getAttribute("data-sec"));}
   else if(act==="open-tpl"){openDialog("tpl");}
+  else if(act==="open-gh"){openDialog("gh");}
+  else if(act==="gh-off"){ghDisconnect();drawDialog();}
   else if(act==="close"){closeDialog();}
   else if(act==="toggle"){
     var key=b.getAttribute("data-key"),has=state.items.some(function(it){return it.key===key;});
@@ -657,6 +768,11 @@ document.addEventListener("submit",function(e){
     }
     state.items.push({id:uid(),key:null,name:name,group:g,freq:"m",amount:0});
     persist();drawSections();drawDialog();
+  }else if(e.target.id==="gh-form"){
+    var cfg={};["owner","repo","branch","path","token"].forEach(function(k){cfg[k]=document.getElementById("gh-"+k).value.trim();});
+    cfg.path=cfg.path.replace(/^\/+/,"");
+    if(!cfg.owner||!cfg.repo||!cfg.branch||!cfg.path||!cfg.token)return;
+    ghConnect(cfg);drawDialog();
   }else if(e.target.id==="tpl-form"){
     var tn=document.getElementById("tpl-name").value.trim();if(!tn)return;
     var withAmt=document.getElementById("tpl-amounts").checked,used={};
@@ -668,8 +784,11 @@ document.addEventListener("submit",function(e){
 
 /* ---------- start ---------- */
 state=load();
+gh=ghLoadCfg();
 renderAll();
 initCloud();
+if(gh)ghPull();
+document.addEventListener("visibilitychange",function(){if(!document.hidden&&gh&&!ghBusy&&!ghDirty&&!dlgMode)ghPull();});
 })();
 </script>
 </body>
