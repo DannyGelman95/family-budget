@@ -1,24 +1,20 @@
-# Israeli Family Budget
+# תקציב משפחתי
 
-A single-page monthly budget calculator for parents in Israel, in shekels. English and Hebrew (RTL).
+מחשבון תקציב חודשי להורים בישראל, בעברית ובשקלים: https://dannygelman95.github.io/family-budget/
 
-- Income, expenses and savings, with what is left each month
-- About 110 built-in categories (Bituach Leumi allowances, arnona, va'ad bayit, tzaharon, keren hishtalmut, kupat gemel le-hashka'a, Savings for Every Child and more)
-- Add or remove categories and groups, or create your own
-- Amounts can be monthly, every two months or yearly
-- Six ready-made templates, plus your own saved templates
+- הכנסות, הוצאות וחיסכון, וכמה נשאר בכל חודש
+- כ-110 סעיפים מוכנים (קצבאות ביטוח לאומי, ארנונה, ועד בית, צהרון, קרן השתלמות, קופת גמל להשקעה, חיסכון לכל ילד ועוד)
+- הוספה והסרה של סעיפים וקבוצות, כולל סעיפים מותאמים אישית
+- סכומים חודשיים, דו-חודשיים או שנתיים
+- שש תבניות מוכנות, ושמירת תבניות משלכם
 
-## Use
+## שמירת הנתונים בקובץ JSON ב-GitHub
 
-Open `index.html` in a browser, or host it with GitHub Pages (Settings → Pages → deploy from the `main` branch, root folder). There is no build step and no server.
+כברירת מחדל התקציב נשמר בדפדפן בלבד. כדי לשתף אותו בין מכשירים ואנשים:
 
-## Shared data in a GitHub JSON file
+1. ב-GitHub, צרו fine-grained personal access token שמוגבל למאגר שבו יישמרו הנתונים, עם הרשאת **Contents** במצב **Read and write**.
+2. במחשבון, פתחו **סנכרון GitHub**, בדקו את הבעלים, המאגר, הענף ונתיב הקובץ (ברירת המחדל `data/budget.json`), הדביקו את האסימון ולחצו **התחברות**.
 
-By default the budget is kept in the browser's local storage. To share it between devices and people:
+האסימון נשמר רק בדפדפן ואינו נכתב לקובץ. קובץ הנתונים גלוי כמו המאגר שבו הוא נמצא, ולכן כדאי לשמור אותו במאגר פרטי.
 
-1. On GitHub, create a fine-grained personal access token limited to the repository that should hold the data, with the **Contents** permission set to **Read and write**.
-2. In the calculator, open **GitHub sync**, check the owner, repository, branch and file path (default `data/budget.json`), paste the token and press **Connect**.
-
-The page then loads the budget from that file and commits every change back to it. Each person or device connects once with a token. The token is stored only in that browser and is never written to the file.
-
-The JSON file is as visible as the repository it lives in. If this repository is public, point GitHub sync at a private repository instead, or make this one private.
+האתר מתפרסם ב-GitHub Pages דרך GitHub Actions בכל דחיפה ל-`main`.
